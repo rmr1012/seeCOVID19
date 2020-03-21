@@ -1,0 +1,56 @@
+
+<div class="row ">
+<div class="col s6">
+  <div class="polarized_card card">
+
+      <div id="q-{{ question.id }}">
+        <div class="SI_title">
+          <span>{{ question.title }}</span>
+        </div>
+        <div class="SI_content card-content">
+            <span>{{ question.content | safe }}</span>
+        </div>
+      </div>
+  </div>
+
+</div>
+<div class="col s6">
+
+
+  <div class="polarized_card card answer_card" >
+    {% if answers %}
+      <a class="waves-effect waves-light btn" style="z-index: auto;" id="b-{{question.id}}">Toggle Answers</a>
+      <script> $("#b-{{question.id}}").click(function(){$("#a-{{question.id}}").toggle()})</script>
+        <div class="answer-container" id="a-{{question.id}}" style="display:none">
+        <ul id="tabs-swipe-demo" class="tabs">
+        {% for answer in answers %}
+          <li class="tab col s3"><a href="#{{ answer.id }}">{{ answer.votes }}</a></li>
+        {% endfor %}
+        </ul>
+        {% for answer in answers %}
+
+        <div id="{{ answer.id }}">
+
+
+          <!-- <div class="SI_title">
+            <span>{{ answer.title }}</span>
+          </div>
+          <div class="card-image">
+              <img src="{{ article.image }}">
+          </div> -->
+          <div class="SI_content card-content">
+              <span>{{ answer.body | safe }}</span>
+          </div>
+
+        </div>
+        {% endfor %}
+      {% else %}
+        <p>No Answers Yet</p>
+      {% endif %}
+    </div>
+  </div>
+
+
+</div>
+</div>
+<script> $('.tabs').tabs();  </script>

@@ -1,0 +1,30 @@
+
+<div class="polarized_card card answer_card" id="a-{{question.id}}">
+  {% if answers %}
+    <ul id="tabs-swipe-demo" class="tabs">
+    {% for answer in answers %}
+      <li class="tab col s3"><a href="#{{ answer.id }}">{{ answer.votes }}</a></li>
+    {% endfor %}
+    </ul>
+    {% for answer in answers %}
+
+    <div id="{{ answer.id }}">
+
+
+      <!-- <div class="SI_title">
+        <span>{{ answer.title }}</span>
+      </div>
+      <div class="card-image">
+          <img src="{{ article.image }}">
+      </div> -->
+      <div class="SI_content card-content">
+          <span>{{ answer.content }}</span>
+      </div>
+
+    </div>
+    {% endfor %}
+  {% else %}
+    <p>No Answers Yet</p>
+  {% endif %}
+
+</div>

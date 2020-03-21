@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {% load static %}
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Prep interview with the best questions">
+  <meta name="author" content="Dennis Ren">
+
+  <link rel="icon" type="image/png" href="static/img/seeeCOVID/icon.png" />
+  <title>StackInterview</title>
+
+  <!--Import Google Icon Font -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Compiled and minified CSS -->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+  <link href="{% static "css/seeeCOVID/home.css" %}" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-99987215-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-99987215-1');
+  </script>
+
+</head>
+
+<body>
+<script> var avalSites={{ sitesStr | safe }}</script>
+{% csrf_token %}
+<div class="backplane" style="background-color:rgb(128,150,128)">
+<!--  <div class="left"></div>
+  <div class="right"></div> -->
+</div>
+<div id="title" class="col s12"><img style="width:65%" src="{% static "img/seeeCOVID/logo.png" %}"></div>
+
+<div class="row" style="text-align:center">
+
+  <h2 style="color:whitesmoke">Search
+    <div class="input-field" id="site-select">
+    <select>
+      {% for site in sites %}
+      <option value="{{ forloop.counter0 }} " selected>{{ site }}</option>
+      {% endfor %}
+    </select>
+    <!-- <label>Site Select</label> -->
+  </div>
+  Topic</h2>
+</div>
+
+
+
+<div class="container fixed-head row">
+  <nav class="col s12 smooth" id="search-bar">
+    <div class="nav-wrapper">
+      <form>
+        <div class="input-field">
+          <input id="search" class="autocomplete" type="search" autocomplete="off" required placeholder="Search Keywords" >
+          <label class="label-icon" for="search"><i class="material-icons" >search</i></label>
+          <i class="material-icons">close</i>
+        </div>
+      </form>
+    </div>
+  </nav>
+  <div class="col s4 small-title smooth" ><img style="width:65%"src="{% static "img/seeeCOVID/logo.png" %}"></div>
+</div>
+<script> var topicList=["{{ topic.0 }}","{{ topic.1 }}","{{ topic.2 }}"]</script>
+<div class="row pre-spin-loader" style="text-align:center;display:none">
+  <img src="{% static "img/seeeCOVID/loader.svg" %}">
+</div>
+<div class="container card-rack">
+
+
+
+</div>
+<div class="row spin-loader" style="text-align:center">
+    <img src="{% static "img/seeeCOVID/loader.svg" %}">
+</div>
+
+
+
+  <script type="text/javascript">
+      var csrf_token = $('input[name="csrfmiddlewaretoken"]').attr('value');
+      $(document).ready(function(){
+        $.ajaxSetup({
+headers: { "X-CSRFToken": '{{csrf_token}}' }
+}); });
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/1.7.9/jquery.lazy.min.js"></script>
+  <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery.lazy/1.7.9/jquery.lazy.plugins.min.js"></script>
+  <script src="{% static "js/seeeCOVID/home.js" %}"></script>
+
+</body>
