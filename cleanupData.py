@@ -6,6 +6,7 @@ from tqdm import tqdm
 import pickle
 from lmfit.models import StepModel, LinearModel
 import numpy as np
+import requests
 # import matplotlib.pyplot as plt
 
 def cleanupData(data):
@@ -165,7 +166,6 @@ def tallyRegions(data,countriesNeedTally):
         totoalCaseTimeSeries={}
         totoalDeathsTimeSeries={}
         totoalRecoveredTimeSeries={}
-
         for single_date in tqdm(daterange(startDate, endDate),total=(endDate-startDate).days):
             # print(single_date.strftime("%Y-%m-%d"))
             dayTotalConfirmed=0
@@ -324,12 +324,13 @@ def computeRegressionVars(timeseries,step_sigma=2):
 
 
 if __name__=="__main__":
-
-
+    APIurl="https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=1"
+    response= requests.get(APIurl)
+    rawData = response.json()
     # rawData=json.loads(open("static/js/seeCOVID19/clean.json","r").read())
-    # with open("static/js/seeCOVID19/processed.json","w") as outFile:
-    #     outFile.write(simplejson.dumps(injectedData,ignore_nan=True))
-    rawData=json.loads(open("static/js/seeCOVID19/raw.json","r").read())
+    with open("static/js/seeCOVID19/raw.json","w") as outFile:
+        outFile.write(json.dumps(rawData))
+    # rawData=json.loads(open("static/js/seeCOVID19/raw.json","r").read())
     pickle.dump( rawData, open( "wip1.dat", "wb" ))
     cleanData=cleanupData(rawData)
     pickle.dump( cleanData, open( "wip2.dat", "wb" ))

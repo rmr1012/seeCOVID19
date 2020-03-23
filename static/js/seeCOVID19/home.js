@@ -261,10 +261,10 @@ $.getJSON('static/js/seeCOVID19/processed.json', function(response){
   $("#subscribe-open").click(function(){
     outStr=rawData["locations"][currentID]["country"]
     if(getProvince(currentID)!=null){
-      outStr+=getProvince(currentID)
+      outStr+=" "+getProvince(currentID)
     }
     if(getCity(currentID)!=null){
-      outStr+=getCity(currentID)
+      outStr+=" "+getCity(currentID)
     }
     $("#subscribe-location").text(outStr);
   });
