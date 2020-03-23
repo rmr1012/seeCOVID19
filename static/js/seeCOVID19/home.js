@@ -290,6 +290,7 @@ $.getJSON('static/js/seeCOVID19/processed.json', function(response){
 
         clearCities()
         updateCityList(rawData,country,region)
+        M.toast({html: 'Some regions may not be fitted properly due to few data points or bad data'})
 
     });
 
@@ -300,6 +301,8 @@ $.getJSON('static/js/seeCOVID19/processed.json', function(response){
          region=statesDict[city.split(",")[1].trim()]
          console.log("updating",country,region,city)
          updateAllCharts(dataID)
+         M.toast({html: 'Some municipalities may not be fitted properly due to few data points or bad data'})
+
 
      });
 
@@ -578,7 +581,7 @@ $.getJSON('static/js/seeCOVID19/processed.json', function(response){
       var lastKey="";
       for(var key in rawData["locations"][locID]["timelines"][type]["log_slope_timeline"]){
         var value = rawData["locations"][locID]["timelines"][type]["log_slope_timeline"][key]
-        console.log(key,value)
+        // console.log(key,value)
         date= moment(key)
         if(rawData["locations"][locID]["timelines"][type]["log_slope_timeline"][key] != rawData["locations"][locID]["timelines"][type]["log_slope_timeline"][lastKey])
         data.push({
