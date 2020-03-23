@@ -19,3 +19,17 @@ class HomeView(TemplateView): #some from 48
     def get(self, request):
         context = {}
         return render(request, self.template_name, context)
+
+@csrf_exempt
+def subscribeAPI(request):
+    if request.method == 'POST':
+        print("got subscrip request")
+        email=request.POST.get('email')
+        countryCode=request.POST.get('countryCode')
+        province=request.POST.get('province')
+        city=request.POST.get('city')
+        name=request.POST.get('name')
+        # print(email,countryCode,province,city,name)
+        subscriberList(countryCode=countryCode,province=province,city=city,email=email,name=name).save()
+
+        return HttpResponse(200)

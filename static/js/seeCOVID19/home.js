@@ -60,12 +60,12 @@ statesDict = {
 
 
 var rawData
-
-var ctx = document.getElementById('canvas-cases-linear').getContext('2d');
-var casesLinChart = new Chart(ctx, {
+var currentID=0;
+function simpleConfig(label)
+{
+  return {
     // The type of chart we want to create
     type: 'line',
-
     // The data for our dataset
     data: {
         datasets: [
@@ -87,6 +87,8 @@ var casesLinChart = new Chart(ctx, {
     // Configuration options go here
     options: {
       responsive: true,
+      maintainAspectRatio:false,
+      // aspectRatio:1.6,
       title: {
         display: true,
       },
@@ -114,103 +116,29 @@ var casesLinChart = new Chart(ctx, {
           },
           scaleLabel: {
             display: true,
-            labelString: 'Comfirmed Cases'
+            labelString: label
           }
         }]
       },
     }
-});
-
-var ctx = document.getElementById('canvas-cases-log').getContext('2d');
-var casesLogChart = new Chart(ctx, {
-    // The type of chart we want to create
+}
+}
+function derivativeConfig(label){
+  return {
     type: 'line',
-
-    // The data for our dataset
-    data: {
-        datasets: [{
-          label: 'Fitted Logistic Curve',
-          fill:false,
-          borderDash:[5,5],
-          backgroundColor: 'rgb(50, 50, 230)',
-          borderColor: 'rgb(50, 50, 230)',
-          order:2,
-        },{
-            label: 'Recorded Data',
-            backgroundColor: 'rgb(255, 99, 132)',
-            borderColor: 'rgb(255, 99, 132)',
-            order: 1
-        }  ]
-    },
-
-    // Configuration options go here
-    options: {
-      responsive: true,
-      title: {
-        display: true,
-      },
-      legend:{
-        display: true
-      },
-      scales: {
-        xAxes: [{
-          type: 'time',
-          time: {
-                  displayFormats: {
-                      quarter: 'MMM DD'
-                  }
-              },
-          distribution: 'linear',
-          offset: true,
-          ticks: {
-            source: 'auto',
-          },
-
-        }],
-        yAxes: [{
-          gridLines: {
-            drawBorder: false
-          },
-          scaleLabel: {
-            display: true,
-            labelString: 'Comfirmed Cases'
-          },
-          type: 'logarithmic',
-          ticks:{
-            callback: function(...args) {
-               const value = Chart.Ticks.formatters.logarithmic.call(this, ...args);
-               // console.log(value)
-               if (value.length) {
-                 return Number(value).toLocaleString()
-               }
-               return value;
-             }
-          }
-        }]
-      }
-    }
-});
-
-
-var ctx = document.getElementById('canvas-cases-slope').getContext('2d');
-var casesSlopeChart = new Chart(ctx, {
-    // The type of chart we want to create
-    type: 'line',
-
-    // The data for our dataset
     data: {
         datasets: [
           {
-            label: 'Logarithmic Slope',
+            label: label,
             fill:false,
             backgroundColor: 'rgb(50, 50, 230)',
             borderColor: 'rgb(50, 50, 230)',
           }]
     },
-
-    // Configuration options go here
     options: {
       responsive: true,
+      maintainAspectRatio:false,
+      // aspectRatio:1.6,
       title: {
         display: true,
       },
@@ -238,78 +166,108 @@ var casesSlopeChart = new Chart(ctx, {
           },
           scaleLabel: {
             display: true,
-            labelString: 'Comfirmed Cases'
+            labelString: label
           }
         }]
       },
     }
+  }
+}
+function logTicker(...args) {
+   const value = Chart.Ticks.formatters.logarithmic.call(this, ...args);
+   // console.log(value)
+   if (value.length) {
+     return Number(value).toLocaleString()
+   }
+   return value;
+ }
+
+var casesLinChart = new Chart($('#canvas-cases-linear')[0].getContext('2d'), simpleConfig('Comfirmed Cases'));
+var casesLogChart = new Chart($('#canvas-cases-log')[0].getContext('2d'), simpleConfig('Comfirmed Cases'));
+casesLogChart.options.scales.yAxes[0].type='logarithmic';
+casesLogChart.options.scales.yAxes[0].ticks.callback=logTicker;
+
+var casesSlopeChart = new Chart($('#canvas-cases-slope')[0].getContext('2d'), derivativeConfig("Logarithmic Slope"))
+var casesConChart = new Chart($('#canvas-cases-concavity')[0].getContext('2d'), derivativeConfig("Logarithmic Concavity"))
 
 
-});
+var deathsLinChart = new Chart($('#canvas-deaths-linear')[0].getContext('2d'), simpleConfig('Comfirmed Deaths'));
+var deathsLogChart = new Chart($('#canvas-deaths-log')[0].getContext('2d'), simpleConfig('Comfirmed Deaths'));
+deathsLogChart.options.scales.yAxes[0].type='logarithmic';
+deathsLogChart.options.scales.yAxes[0].ticks.callback=logTicker;
 
-var ctx = document.getElementById('canvas-cases-concavity').getContext('2d');
-var casesConChart = new Chart(ctx, {
-    // The type of chart we want to create
-    type: 'line',
+var deathsSlopeChart = new Chart($('#canvas-deaths-slope')[0].getContext('2d'), derivativeConfig("Logarithmic Slope"))
+var deathsConChart = new Chart($('#canvas-deaths-concavity')[0].getContext('2d'), derivativeConfig("Logarithmic Concavity"))
 
-    // The data for our dataset
-    data: {
-        datasets: [
-          {
-            label: 'Logarithmic Concavity',
-            fill:false,
-            backgroundColor: 'rgb(50, 50, 230)',
-            borderColor: 'rgb(50, 50, 230)',
-          }]
-    },
+var recoveredLinChart = new Chart($('#canvas-recovered-linear')[0].getContext('2d'), simpleConfig('Comfirmed Recovered'));
+var recoveredLogChart = new Chart($('#canvas-recovered-log')[0].getContext('2d'), simpleConfig('Comfirmed Recovered'));
+recoveredLogChart.options.scales.yAxes[0].type='logarithmic';
+recoveredLogChart.options.scales.yAxes[0].ticks.callback=logTicker;
 
-    // Configuration options go here
-    options: {
-      responsive: true,
-      title: {
-        display: true,
-      },
-      legend:{
-        display: true
-      },
-      scales: {
-        xAxes: [{
-          type: 'time',
-          time: {
-                  displayFormats: {
-                      quarter: 'MMM DD'
-                  }
-              },
-          distribution: 'linear',
-          offset: true,
-          ticks: {
-            source: 'auto',
+var recoveredSlopeChart = new Chart($('#canvas-recovered-slope')[0].getContext('2d'), derivativeConfig("Logarithmic Slope"))
+var recoveredConChart = new Chart($('#canvas-recovered-concavity')[0].getContext('2d'), derivativeConfig("Logarithmic Concavity"))
+
+function submitSub(email,name,id){
+  $.ajax({
+          type: "POST",
+          url: window.location.pathname+"subscribe",//other option is search
+          dataType: "json",
+          data : {email : email,
+                  name : name,
+                  countryCode:getCountryCode(id),
+                  province:getProvince(id),
+                  city:getCity(id)
+                },
+          success: function(response) {
+              console.log(response);
           },
-
-        }],
-        yAxes: [{
-          gridLines: {
-            drawBorder: false
-          },
-          scaleLabel: {
-            display: true,
-            labelString: 'Comfirmed Cases'
+          error: function(response) {
+              console.log(response);
           }
-        }]
-      },
-    }
+  });
+   M.toast({html: 'All signed up!'})
+}
 
-
-});
-
-
+function getCountryCode(id){
+  return rawData["locations"][id]["country_code"]
+}
+function getProvince(id){
+  pstr=rawData["locations"][id]["province"];
+  if (pstr.split(",").length>1){
+    console.log(pstr.split(",")[1])
+    return statesDict[pstr.split(",")[1].trim()]
+  }
+  else if (pstr != ''){
+    return pstr
+  }
+  return null
+}
+function getCity(id){
+  pstr=rawData["locations"][id]["province"];
+  if (pstr.split(",").length>1){
+    statesDict[pstr.split(",")[1]]
+    return pstr
+  }
+  return null
+}
 $.getJSON('static/js/seeCOVID19/processed.json', function(response){
   rawData = response;
 }).complete(function() {
   console.log("JSON loaded")
   console.log(rawData)
-
-
+  $("#sub-signup").click(function(){submitSub($("#sub_email").val(),$("#sub_name").val(),currentID);
+                                    M.Modal.getInstance(document.getElementById("subscribe-modal")).close();
+                                    });
+  $("#subscribe-open").click(function(){
+    outStr=rawData["locations"][currentID]["country"]
+    if(getProvince(currentID)!=null){
+      outStr+=getProvince(currentID)
+    }
+    if(getCity(currentID)!=null){
+      outStr+=getCity(currentID)
+    }
+    $("#subscribe-location").text(outStr);
+  });
   updateCountryList(rawData)
 
   $('select').formSelect();
@@ -347,24 +305,19 @@ $.getJSON('static/js/seeCOVID19/processed.json', function(response){
 
      function updateAllCharts(dataID){
        $('#latest').text("Confirmed: "+rawData["locations"][dataID]["latest"]["confirmed"]+
-                         " Deaths: "   +rawData["locations"][dataID]["latest"]["deaths"]+
-                         " Recovered: "+rawData["locations"][dataID]["latest"]["recovered"]
+                         "    Deaths: "   +rawData["locations"][dataID]["latest"]["deaths"]+
+                         "    Recovered: "+rawData["locations"][dataID]["latest"]["recovered"]
                         );
+        $("#data-ts").text("Data as of "+moment(rawData['locations'][dataID]["last_updated"]).format('MMMM Do YYYY, h:mm:ss a'))
        baselineData=getTimelineByID(dataID,type="confirmed")
        casesLinChart.data.datasets[1].data=baselineData
-       casesLinChart.options.title.text="Data as of "+moment(rawData['locations'][dataID]["last_updated"]).format('MMMM Do YYYY, h:mm:ss a')
-
        casesLogChart.data.datasets[1].data=baselineData
-       casesLogChart.options.title.text="Data as of "+moment(rawData['locations'][dataID]["last_updated"]).format('MMMM Do YYYY, h:mm:ss a')
 
        logConData=getLogConTimelineByID(dataID,type="confirmed")
        casesConChart.data.datasets[0].data=logConData
-       casesConChart.options.title.text="Data as of "+moment(rawData['locations'][dataID]["last_updated"]).format('MMMM Do YYYY, h:mm:ss a')
 
        logSlopeData=getLogSlopeTimelineByID(dataID,type="confirmed")
        casesSlopeChart.data.datasets[0].data=logSlopeData
-       casesSlopeChart.options.title.text="Data as of "+moment(rawData['locations'][dataID]["last_updated"]).format('MMMM Do YYYY, h:mm:ss a')
-
 
        if (rawData["locations"][dataID]["timelines"][type]["logistic_fit"]["fitted"]){
          fittedData=getLogFitByID(dataID,type="confirmed")
@@ -376,6 +329,51 @@ $.getJSON('static/js/seeCOVID19/processed.json', function(response){
        casesLogChart.update()
        casesConChart.update()
        casesSlopeChart.update()
+        // -----------------------------------------------------------------------
+
+       baselineData=getTimelineByID(dataID,type="deaths")
+       deathsLinChart.data.datasets[1].data=baselineData
+       deathsLogChart.data.datasets[1].data=baselineData
+
+       logConData=getLogConTimelineByID(dataID,type="deaths")
+       deathsConChart.data.datasets[0].data=logConData
+
+       logSlopeData=getLogSlopeTimelineByID(dataID,type="deaths")
+       deathsSlopeChart.data.datasets[0].data=logSlopeData
+
+       if (rawData["locations"][dataID]["timelines"][type]["logistic_fit"]["fitted"]){
+         fittedData=getLogFitByID(dataID,type="deaths")
+         deathsLinChart.data.datasets[0].data=fittedData
+         deathsLogChart.data.datasets[0].data=fittedData
+       }
+
+       deathsLinChart.update()
+       deathsLogChart.update()
+       deathsConChart.update()
+       deathsSlopeChart.update()
+       // ------------------------------------------------------------------------
+
+       baselineData=getTimelineByID(dataID,type="recovered")
+       recoveredLinChart.data.datasets[1].data=baselineData
+       recoveredLogChart.data.datasets[1].data=baselineData
+
+       logConData=getLogConTimelineByID(dataID,type="recovered")
+       recoveredConChart.data.datasets[0].data=logConData
+
+       logSlopeData=getLogSlopeTimelineByID(dataID,type="recovered")
+       recoveredSlopeChart.data.datasets[0].data=logSlopeData
+
+       if (rawData["locations"][dataID]["timelines"][type]["logistic_fit"]["fitted"]){
+         fittedData=getLogFitByID(dataID,type="recovered")
+         recoveredLinChart.data.datasets[0].data=fittedData
+         recoveredLogChart.data.datasets[0].data=fittedData
+       }
+
+       recoveredLinChart.update()
+       recoveredLogChart.update()
+       recoveredConChart.update()
+       recoveredSlopeChart.update()
+       currentID=dataID
      }
      function updateCountryList(data){
        countries = new Set()
@@ -602,7 +600,9 @@ function isEmpty(obj) {
 }
 
 $(document).ready(function(){
-
-    $('.tabs').tabs();
+  M.AutoInit();
+    // $('.tabs').tabs();
+    // $('.collapsible').collapsible();
+    // $('.modal').modal();
 
 });

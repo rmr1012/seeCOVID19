@@ -7,11 +7,11 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Prep interview with the best questions">
+  <meta name="description" content="Platting the COVID-19 pandemic with a bit of math">
   <meta name="author" content="Dennis Ren">
 
   <link rel="icon" type="image/png" href="static/img/seeCOVID19/icon.png" />
-  <title>StackInterview</title>
+  <title>COVID-19 Data Visualized</title>
 
   <!--Import Google Icon Font -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -26,10 +26,16 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-99987215-1"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+  </script>
 
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
     gtag('js', new Date());
 
     gtag('config', 'UA-99987215-1');
@@ -38,92 +44,302 @@
 </head>
 
 <body>
-{% csrf_token %}
+  {% csrf_token %}
   <div class="backplane">
-    <div class="section no-pad-bot" id="index-banner">
-    <div class="container">
-      <br><br>
-      <h1 class="header center orange-text">Dennis' COVID19 Visualizer</h1>
-      <div class="row center">
-        <h5 class="header col s12 light">Plotting COVID19 data in interesting ways to help you better understand this situation</h5>
-      </div>
-      <div class="row center">
-        <div class="input-field col s4">
-          <select id="country-select">
+    <div id="home-button-container"><a class="waves-effect waves-teal btn-flat" href="http://dennisren.com">
+        < dennisren.com</a> </div> <div class="section no-pad-bot" id="index-banner">
+          <div class="container">
+            <br><br>
+            <h1 class="header center orange-text">Dennis' COVID-19 Visualizer</h1>
+            <div class="row center">
+              <h5 class="header col s12 light">Plotting COVID-19 data in interesting ways to help you better understand this situation</h5>
+            </div>
+            <div class="row center">
+              <div class="col m10 offset-m1">
+                <ul class="collapsible">
+                  <li>
+                    <div class="collapsible-header"><i class="material-icons">info</i>Readme</div>
+                    <div class="collapsible-body">
+                      <h3>Welcome!</h3>
+                      <p>I built this tool out of my own curiosity of what the COVID-19 data looks like through the lens of some simple mathmatics.
+                        I hope you find the graphics helpful when trying to get a grasp on this complex situation. This is a good faith project, please use with discretion</p>
+                      <h4>Legal Stuff</h4>
+                      <a class="waves-effect waves-light btn modal-trigger" href="#disclamer-modal">Disclaimer</a>
+                      <h5>TL;DR</h5>
+                      <p>Basically, I'm not a medical professional nor a epidemiologist. The data shown here are entirly sourced from public sources listed below.
+                        <b>This page does NOT represent my opinion</b>, it's merely a reflection of a standard set of mathmatics applied to the set of publically avaliable data.
+                        All projection and forecase shown on this page are purely results from mathmatical computation.
+                      </p>
+                      <h4>Data Source and Credits</h4>
+                      <p>The data is made avaliable by this project <a href="https://github.com/ExpDev07/coronavirus-tracker-api">ExpDev07/coronavirus-tracker-api</a> the additional computation on this dataset is performed on my server on a daily
+                        basis</p>
+                      <p>Credits to the follow amazing tools and frameworks</p>
+                      <a href="https://materializecss.com/">Materialize</a>
+                      <a href="https://www.chartjs.org/">Chart.js</a>
+                      <a href="https://momentjs.com/">Moment.js</a>
+                      <a href="https://jquery.com/">JQuery</a>
+                      <a href="https://www.mathjax.org/">MathJax</a>
 
-          </select>
-          <label>Country</label>
-        </div>
-
-        <div class="input-field col s4">
-          <select disabled id="region-select">
-
-          </select>
-          <label>Region</label>
-        </div>
-
-        <div class="input-field col s4">
-          <select disabled id="municipality-select">
-
-          </select>
-          <label>Municipality</label>
-        </div>
-
-      </div>
-
+                      <p>Please <a href="mailto:me@dennisren.com?subject=seeCOVID19 Suggestion"> email</a> me for ideas, bugs, improvements, etc...</p>
+                      <h5>This page is coded with <i class="fas fa-heart" style="color:red"></i> by Dennis Ren, stay healthy!</h5>
 
     </div>
+    </li>
+    </ul>
   </div>
-    <div class="container">
-      <div class="section">
-        <h4 id="latest">Total Cases To Date </h4>
-        <div class="row">
-          <div class="col s12">
-            <ul class="tabs">
-              <li class="tab col s3"><a class="active" href="#cases-linear">Linear</a></li>
-              <li class="tab col s3"><a href="#cases-log">Logarithmic</a></li>
-              <li class="tab col s3 "><a href="#cases-slope">Logarithmic Slope</a></li>
-              <li class="tab col s3 "><a href="#cases-concavity">Logarithmic Concavity</a></li>
-            </ul>
-          </div>
+  </div>
+  <div class="row center">
+    <div class="input-field col s4">
+      <select id="country-select">
 
-          <div id="cases-linear"    class="col s12">
-            <canvas id="canvas-cases-linear"></canvas>
-          </div>
-          <div id="cases-log"       class="col s12">
-            <canvas id="canvas-cases-log"></canvas>
-          </div>
-          <div id="cases-slope" class="col s12">
-            <canvas id="canvas-cases-slope"></canvas>
-          </div>
-          <div id="cases-concavity" class="col s12">
-            <canvas id="canvas-cases-concavity"></canvas>
-          </div>
+      </select>
+      <label>Country</label>
+    </div>
 
-        </div>
+    <div class="input-field col s4">
+      <select disabled id="region-select">
 
+      </select>
+      <label>Region</label>
+    </div>
 
-        <div class="row">
+    <div class="input-field col s4">
+      <select disabled id="municipality-select">
 
-          <div class="col m12">
-            <canvas id="myChart2"></canvas>
-          </div>
+      </select>
+      <label>Municipality</label>
+    </div>
 
+  </div>
+  <div class="row center">
+    <a class="waves-effect waves-light btn modal-trigger" id="subscribe-open" href="#subscribe-modal"><i class="material-icons left">email</i>Get daily update for this region</a>
+  </div>
+
+  </div>
+  </div>
+  <div class="container">
+    <div class="section">
+
+      <div class="row center">
+        <div class="col m10 offset-m1">
+          <h4 class="light" id="latest">Total Cases To Date </h4>
         </div>
       </div>
+      <div class="row center">
+        <div class="col m10 offset-m1">
+          <p class="light" id="data-ts">Data As Of </p>
+        </div>
+      </div>
+      <div class="row" id="chart-type-menu">
+        <div class="col s12">
+          <ul class="tabs">
+            <li class="tab col s3"><a class="active" href="#cases-linear">Linear</a></li>
+            <li class="tab col s3"><a href="#cases-log">Logarithmic</a></li>
+            <li class="tab col s3 "><a href="#cases-slope">Logarithmic Slope</a></li>
+            <li class="tab col s3 "><a href="#cases-concavity">Logarithmic Concavity</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="row center">
+        <div class="col m10 offset-m1">
+          <ul class="collapsible">
+            <li>
+              <div class="collapsible-header"><i class="material-icons">functions</i>Methodology</div>
+              <div class="collapsible-body">
+                <h4>Fitted Logistic Curves</h4>
+                <p>*For begineers check out this <a href="https://www.youtube.com/watch?v=Kas0tIxDvrg">Video by 3Blue1Brown</a> on the math behind epidemic growth</p>
+                <p>The total confirmed, deaths, and recovery curves of a epidemic roughly follow a logistic curve over it's course in a community.
+                  Of course, there are a lot more factors that come into play when modeling an epidemic.
+                  This study makes no attempts to account for explicit factors.</p>
+                <p>Each curve in the dataset is fitted to the following ideal logistic model</p>
+                <p>$$f(x;A,\mu ,\sigma)=A[1-\frac{1}{1+e^{\alpha}}]$$</p>
+                <p>Where</p>
+                <p>$$\alpha=\frac{x-\mu}{\sigma}$$</p>
+                <p>In this model, A accounts for the amplitude of the curve, essentially predicting the ceiling of the epidemic</p>
+                <p>𝜇 represents the center of the logistic curve, it marks the estimated inflection point of the epidemic</p>
+                <p>𝜎 represents the growth factor of the curve, aka the "sharpness" </p>
+                <p>Each curve is fed through a least-square gradient decent optimizer against the ideal model to compute the parameters.
+                  <b>Note that not all datasets can be successfully fitted</b>, the optimizer can't converge on those datasets with too little data points or non-ideal shape. </p>
+                <p>I decided to plot ahead the fitted curve 10 days ahead of now so you could visualize the current trend.
+                  Please also note that <b>this is NOT a prediction of the course of the epidemic</b>, it's merely a rough forecast from the current known datapoints. <b>No one can predict the future.</b></p>
+
+                <h4>Derivatives of Logarithmic Data</h4>
+                <p>During exponantial growth, the log plot shows a linear growth. The slope of the log chart therefore informs the speed of the growth. The slope chart s(t) is defined as </p>
+                <p>$$s(t)=\frac{\mathrm{d} }{\mathrm{d} t}log_{10}(y)$$</p>
+                <p>Simalar logic folows. In a polynomial function, the second derivative indicates concavity. The second derivative on the linearized data gives us the concavity of the growth curve.
+                  Positive value on this curve means accelerating spread, while negative value points to decelerating spread. The concavity chart is defined as</p>
+                <p>$$c(t)=\frac{\mathrm{d^2} }{\mathrm{d} t^2}log_{10}(y)$$</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+
+      <div id="cases-linear" class="col s12 plot-panel">
+        <div class="row center">
+          <div class="col m10 offset-m1">
+            <h3 class="light" id="data-ts">Confirmed Cases </h3>
+          </div>
+        </div>
+        <div class="canvas-container"><canvas id="canvas-cases-linear"></canvas></div>
+        <hr>
+        <div class="row center">
+          <div class="col m10 offset-m1">
+            <h3 class="light" id="data-ts">Confirmed Deaths </h3>
+          </div>
+        </div>
+        <div class="canvas-container"><canvas id="canvas-deaths-linear"></canvas></div>
+        <hr>
+        <div class="row center">
+          <div class="col m10 offset-m1">
+            <h3 class="light" id="data-ts">Confirmed Recovered </h3>
+          </div>
+        </div>
+        <div class="canvas-container"><canvas id="canvas-recovered-linear"></canvas></div>
+      </div>
+      <div id="cases-log" class="col s12 plot-panel">
+        <div class="row center">
+          <div class="col m10 offset-m1">
+            <h3 class="light" id="data-ts">Confirmed Cases </h3>
+          </div>
+        </div>
+        <div class="canvas-container"><canvas id="canvas-cases-log"></canvas></div>
+        <hr>
+        <div class="row center">
+          <div class="col m10 offset-m1">
+            <h3 class="light" id="data-ts">Confirmed Deaths </h3>
+          </div>
+        </div>
+        <div class="canvas-container"><canvas id="canvas-deaths-log"></canvas></div>
+        <hr>
+        <div class="row center">
+          <div class="col m10 offset-m1">
+            <h3 class="light" id="data-ts">Confirmed Recovered </h3>
+          </div>
+        </div>
+        <div class="canvas-container"><canvas id="canvas-recovered-log"></canvas></div>
+      </div>
+      <div id="cases-slope" class="col s12 plot-panel">
+        <div class="row center">
+          <div class="col m10 offset-m1">
+            <h3 class="light" id="data-ts">Confirmed Cases </h3>
+          </div>
+        </div>
+        <div class="canvas-container"><canvas id="canvas-cases-slope"></canvas></div>
+        <hr>
+        <div class="row center">
+          <div class="col m10 offset-m1">
+            <h3 class="light" id="data-ts">Confirmed Deaths </h3>
+          </div>
+        </div>
+        <div class="canvas-container"><canvas id="canvas-deaths-slope"></canvas></div>
+        <hr>
+        <div class="row center">
+          <div class="col m10 offset-m1">
+            <h3 class="light" id="data-ts">Confirmed Recovered </h3>
+          </div>
+        </div>
+        <div class="canvas-container"><canvas id="canvas-recovered-slope"></canvas></div>
+      </div>
+      <div id="cases-concavity" class="col s12">
+        <div class="row center">
+          <div class="col m10 offset-m1">
+            <h3 class="light" id="data-ts">Confirmed Cases </h3>
+          </div>
+        </div>
+        <div class="canvas-container"><canvas id="canvas-cases-concavity"></canvas></div>
+        <hr>
+        <div class="row center">
+          <div class="col m10 offset-m1">
+            <h3 class="light" id="data-ts">Confirmed Deaths </h3>
+          </div>
+        </div>
+        <div class="canvas-container"><canvas id="canvas-deaths-concavity"></canvas></div>
+        <hr>
+        <div class="row center">
+          <div class="col m10 offset-m1">
+            <h3 class="light" id="data-ts">Confirmed Recovered </h3>
+          </div>
+        </div>
+        <div class="canvas-container"><canvas id="canvas-recovered-concavity"></canvas></div>
+      </div>
+
+    </div>
+
+
+  </div>
+  </div>
+
+
+  <div id="disclamer-modal" class="modal modal-fixed-footer">
+    <div class="modal-content">
+      <h2>DISCLAIMER</h2>
+      <br>
+      <span>Last updated March 23, 2020</span>
+      <br>
+      <h3>WEBSITE DISCLAIMER</h3>
+      <p>The information provided by dennisren.com (“we,” “us” or “our”) on dennisren.com/covid19 (the “Site”) and our mobile application is for general informational purposes only. All information on the Site and our mobile application is provided
+        in good faith, however we make no representation or warranty of any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability or completeness of any information on the Site or our mobile application.
+        UNDER NO CIRCUMSTANCE SHALL WE HAVE ANY LIABILITY TO YOU FOR ANY LOSS OR DAMAGE OF ANY KIND INCURRED AS A RESULT OF THE USE OF THE SITE OR OUR MOBILE APPLICATION OR RELIANCE ON ANY INFORMATION PROVIDED ON THE SITE AND OUR MOBILE
+        APPLICATION. YOUR USE OF THE SITE AND OUR MOBILE APPLICATION AND YOUR RELIANCE ON ANY INFORMATION ON THE SITE AND OUR MOBILE APPLICATION IS SOLELY AT YOUR OWN RISK.</p>
+      <br>
+      <h3>EXTERNAL LINKS DISCLAIMER</h3>
+      <p>The Site and our mobile application may contain (or you may be sent through the Site or our mobile application) links to other websites or content belonging to or originating from third parties or links to websites and features in banners
+        or other advertising. Such external links are not investigated, monitored, or checked for accuracy, adequacy, validity, reliability, availability or completeness by us. WE DO NOT WARRANT, ENDORSE, GUARANTEE, OR ASSUME RESPONSIBILITY FOR THE
+        ACCURACY OR RELIABILITY OF ANY INFORMATION OFFERED BY THIRD-PARTY WEBSITES LINKED THROUGH THE SITE OR ANY WEBSITE OR FEATURE LINKED IN ANY BANNER OR OTHER ADVERTISING. WE WILL NOT BE A PARTY TO OR IN ANY WAY BE RESPONSIBLE FOR MONITORING
+        ANY TRANSACTION BETWEEN YOU AND THIRD-PARTY PROVIDERS OF PRODUCTS OR SERVICES.</p>
+      <br>
+      <h3>PROFESSIONAL DISCLAIMER</h3>
+      <p>The Site cannot and does not contain medical/health advice. The medical/health information is provided for general informational and educational purposes only and is not a substitute for professional advice. Accordingly, before taking any
+        actions based upon such information, we encourage you to consult with the appropriate professionals. We do not provide any kind of medical/health advice. THE USE OR RELIANCE OF ANY INFORMATION CONTAINED ON THIS SITE OR OUR MOBILE
+        APPLICATION IS SOLELY AT YOUR OWN RISK.</p>
+    </div>
+    <div class="modal-footer">
+      <a href="#!" class="modal-close waves-effect waves-green btn-flat">OK</a>
     </div>
   </div>
 
+
+  <div id="subscribe-modal" class="modal">
+      <div class="modal-content">
+        <h4>I will send you daily digest on</h4>
+        <h5 id="subscribe-location"></h5>
+        <form>
+        <div class="row cetner">
+          <div class="input-field col s8">
+            <i class="material-icons prefix">email</i>
+            <input id="sub_email" type="email" class="validate">
+            <label for="email">Email</label>
+            <span class="helper-text" data-error="wrong" data-success="right">Mandatory</span>
+          </div>
+        </div>
+        <div class="row cetner">
+          <div class="input-field col s8">
+            <i class="material-icons prefix">account_circle</i>
+            <input id="sub_name" type="text" class="validate">
+            <label for="icon_prefix">Your Name (Optional)</label>
+          </div>
+        </div>
+        <a class="waves-effect waves-light btn" id="sub-signup">Sign me up!<i class="material-icons right">send</i></a>
+
+      </form>
+      </div>
+
+    </div>
 
 
 
 
   <script type="text/javascript">
-      var csrf_token = $('input[name="csrfmiddlewaretoken"]').attr('value');
-      $(document).ready(function(){
-        $.ajaxSetup({
-        headers: { "X-CSRFToken": '{{csrf_token}}' }
-        }); });
+    var csrf_token = $('input[name="csrfmiddlewaretoken"]').attr('value');
+    $(document).ready(function() {
+      $.ajaxSetup({
+        headers: {
+          "X-CSRFToken": '{{csrf_token}}'
+        }
+      });
+    });
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
   <script src="{% static "js/seeCOVID19/home.js" %}"></script>

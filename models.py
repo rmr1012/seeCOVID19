@@ -1,9 +1,10 @@
 from django.db import models
 
 # Create your models here.
-class QuestionCache(models.Model):
-    question_id=models.CharField(max_length=15)
-    site=models.CharField(max_length=55)
-    added_timestamp=models.DateTimeField(auto_now_add=True,null=True)
-    query=models.CharField(max_length=100)
-    content=models.CharField(max_length=6536,null=True) ## raw api response item
+class subscriberList(models.Model):
+    countryCode=models.CharField(max_length=5)
+    province=models.CharField(max_length=20,null=True)
+    city=models.CharField(max_length=25,null=True)
+    addedTimestamp=models.DateTimeField(auto_now_add=True)
+    email=models.CharField(max_length=100)
+    name=models.CharField(max_length=100,null=True)

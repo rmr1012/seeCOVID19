@@ -5,3 +5,24 @@
 .backplane .container{
   margin:0,
 }
+
+#chart-type-menu{
+  position: -webkit-sticky; /* Safari */
+  position: sticky;
+  top: 0;
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.plot-panel hr{
+  color:rgba(0,0,0,100);
+  margin-top:30px;
+}
+
+.canvas-container{
+  height: 70vh
+}
+#home-button-container{
+  position: absolute;
+  margin-top: 10px;
+}
