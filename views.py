@@ -31,21 +31,45 @@ def updateMap():
     df = pickle.load( open( "baseline0325.dat", "rb" ) )
     for index,row in df.iterrows():
         print(row["Country/Region"],row["Province/State"])
-        mapData(country=row["Country/Region"],province=row["Province/State"]).save()
+        try:
+            mapData(country=row["Country/Region"],province=row["Province/State"]).save()
+        except Exception as e:
+            print(str(e))
 
-def updateBaseLineData():
-    df = pickle.load( open( "baseline0325.dat", "rb" ) )
-    for index,row in df.iterrows():
+def updateBaseLineCasesData():
+    df = pickle.load( open( "baselineCases0325.dat", "rb" ) )
+    for index,row in tqdm(df.iterrows()):
         # if index==0:
         country=row["Country/Region"]
         province=row["Province/State"]
         locationID=mapData.objects.filter(country=country,province=province)[0]
-        print(locationID)
         cleanrow=row.drop(["Country/Region","Province/State"])
         for key, value in cleanrow.items():
             if not math.isnan(value):
-                print(key)
-                locationData(locationID=locationID,date=datetime.strptime(key,'%m/%d/%y'),count=value,type=0).save()
+                # print(key)
+                try:
+                    locationData(locationID=locationID,date=datetime.strptime(key,'%m/%d/%y'),count=value,type=0).save()
+                except Exception as e:
+                    print(str(e))
+                    print(locationID,locationID.country,locationID.province)
+
+def updateBaseLineDeathsData():
+    df = pickle.load( open( "baselineDeaths0325.dat", "rb" ) )
+    for index,row in tqdm(df.iterrows()):
+        # if index==0:
+        country=row["Country/Region"]
+        province=row["Province/State"]
+        locationID=mapData.objects.filter(country=country,province=province)[0]
+        cleanrow=row.drop(["Country/Region","Province/State"])
+        for key, value in cleanrow.items():
+            if not math.isnan(value):
+                # print(key)
+                try:
+                    locationData(locationID=locationID,date=datetime.strptime(key,'%m/%d/%y'),count=value,type=1).save()
+                except Exception as e:
+                    print(str(e))
+                    print(locationID,locationID.country,locationID.province)
+
 
 
 
