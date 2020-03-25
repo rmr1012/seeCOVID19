@@ -18,10 +18,36 @@ from lmfit import Parameters, fit_report, minimize
 
 import numpy as np
 from scipy import interpolate
-
+import math
+import pandas as pd
+from datetime import datetime
+import pytz
 SITES={}
 
 forgottenCountries=["China","Canada","Australia","Cruise Ship"]
+
+
+def updateMap():
+    df = pickle.load( open( "baseline0325.dat", "rb" ) )
+    for index,row in df.iterrows():
+        print(row["Country/Region"],row["Province/State"])
+        mapData(country=row["Country/Region"],province=row["Province/State"]).save()
+
+def updateBaseLineData():
+    df = pickle.load( open( "baseline0325.dat", "rb" ) )
+    for index,row in df.iterrows():
+        # if index==0:
+        country=row["Country/Region"]
+        province=row["Province/State"]
+        locationID=mapData.objects.filter(country=country,province=province)[0]
+        print(locationID)
+        cleanrow=row.drop(["Country/Region","Province/State"])
+        for key, value in cleanrow.items():
+            if not math.isnan(value):
+                print(key)
+                locationData(locationID=locationID,date=datetime.strptime(key,'%m/%d/%y'),count=value,type=0).save()
+
+
 
 class HomeView(TemplateView): #some from 48
 
@@ -67,6 +93,14 @@ def supplymentAPI(request):
         country=request.POST.get('country')
         data=json.loads("static/js/seeCOVID19/"+country+".js")
         return JsonResponse(data)
+
+@csrf_exempt
+def logCountyAPI(request):
+    if request.method == 'POST':
+        country=request.POST.get('country')
+        data=json.loads("static/js/seeCOVID19/"+country+".js")
+        return JsonResponse(data)
+
 
 def computeRegressionVars(timeseries):
     y=np.array([val["y"] for val in timeseries],dtype=np.uint32)

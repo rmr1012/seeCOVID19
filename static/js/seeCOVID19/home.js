@@ -428,9 +428,7 @@ $.getJSON('https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=
        recoveredSlopeChart.update()
        currentID=dataID
     }
-    function combineRegions(regionsList){
 
-    }
     function getForgottenList(){
       allLocations = new Set()
       uniqueCountries = new Set()
@@ -527,6 +525,7 @@ $.getJSON('https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=
          addRegion({province:"Overall",id:$('#country-select').val(),case:rawData["locations"][$('#country-select').val()]["latest"]["confirmed"]},true)
          var regionsList=[]
          for(region in mapDat[country]){
+           console.log(region)
            for (var locationID in rawData["locations"]){
              // if (rawData["locations"][locationID]["country"]=="US"){
              //   console.log(rawData["locations"][locationID]["province"])
