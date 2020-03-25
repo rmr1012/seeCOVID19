@@ -36,8 +36,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
   <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
-  </script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -70,7 +69,7 @@
                     <div class="collapsible-header"><i class="material-icons">info</i>Readme</div>
                     <div class="collapsible-body">
                       <h3>Welcome!</h3>
-                      <p>I built this tool out of my own curiosity of what the COVID-19 data looks like through the lens of some simple mathmatics.
+                      <p>I built this tool to better visualize COVID-19 data through the lens of simple mathmatics.
                         I hope you find the graphics helpful when trying to get a grasp on this complex situation. This is a good faith project, please use with discretion</p>
                       <h4>Legal Stuff</h4>
                       <a class="waves-effect waves-light btn modal-trigger" href="#disclamer-modal">Disclaimer</a>
@@ -351,6 +350,7 @@
     });
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script src="{% static "js/seeCOVID19/mapDat.js" %}"></script>
   <script src="{% static "js/seeCOVID19/home.js" %}"></script>
 
 </body>

@@ -21,7 +21,8 @@ def cleanupData(data):
         if (item["country"] in countriesNeedTally) and item["province"] == "":
             countriesNeedTally.remove(item["country"])
 
-    outdata1=tallyRegions(data,countriesNeedTally)
+    # for country in countriesNeedTally:
+
 
     # pickle.dump( outdata1, open( "wip.dat", "wb" ) )
     #
@@ -117,8 +118,9 @@ def inState(city,state):
             return True
     return False
 
-def tallyRegions(data,countriesNeedTally):
+def tallyRegions(data,countriesNeedTally,doRecovered=False):
     outData=data
+    countryObjs=[]
     seriesID=len(data["locations"])
     for country in countriesNeedTally:
         print("Processing "+country+"\n")
@@ -143,10 +145,11 @@ def tallyRegions(data,countriesNeedTally):
                 endDate=max(dateutil.parser.parse(list(item["timelines"]["deaths"]["timeline"].keys())[-1]),endDate)
                 lastUpdated=max(dateutil.parser.parse(item["last_updated"]),lastUpdated)
 
-                recoveredTimeSeriesList.append(item["timelines"]["recovered"]["timeline"])
-                startDate=min(dateutil.parser.parse(list(item["timelines"]["recovered"]["timeline"].keys())[0]),startDate)
-                endDate=max(dateutil.parser.parse(list(item["timelines"]["recovered"]["timeline"].keys())[-1]),endDate)
-                lastUpdated=max(dateutil.parser.parse(item["last_updated"]),lastUpdated)
+                if doRecovered:
+                    recoveredTimeSeriesList.append(item["timelines"]["recovered"]["timeline"])
+                    startDate=min(dateutil.parser.parse(list(item["timelines"]["recovered"]["timeline"].keys())[0]),startDate)
+                    endDate=max(dateutil.parser.parse(list(item["timelines"]["recovered"]["timeline"].keys())[-1]),endDate)
+                    lastUpdated=max(dateutil.parser.parse(item["last_updated"]),lastUpdated)
 
                 country_code=item["country_code"]
                 coordinates=item["coordinates"]
@@ -166,6 +169,9 @@ def tallyRegions(data,countriesNeedTally):
         totoalCaseTimeSeries={}
         totoalDeathsTimeSeries={}
         totoalRecoveredTimeSeries={}
+        dayTotalRecovered=0
+        dayTotalConfirmed=0
+        dayTotalDeaths=0
         for single_date in tqdm(daterange(startDate, endDate),total=(endDate-startDate).days):
             # print(single_date.strftime("%Y-%m-%d"))
             dayTotalConfirmed=0
@@ -181,27 +187,29 @@ def tallyRegions(data,countriesNeedTally):
                     if dateutil.parser.parse(dateStr).date() == single_date.date():
                         dayTotalDeaths+=count
             totoalDeathsTimeSeries[single_date.isoformat()]=dayTotalDeaths
+            if doRecovered:
+                dayTotalRecovered=0
+                for regionList in recoveredTimeSeriesList:
+                    for dateStr,count in regionList.items():
+                        if dateutil.parser.parse(dateStr).date() == single_date.date():
+                            dayTotalRecovered+=count
+                totoalRecoveredTimeSeries[single_date.isoformat()]=dayTotalRecovered
 
-            dayTotalRecovered=0
-            for regionList in recoveredTimeSeriesList:
-                for dateStr,count in regionList.items():
-                    if dateutil.parser.parse(dateStr).date() == single_date.date():
-                        dayTotalRecovered+=count
-            totoalRecoveredTimeSeries[single_date.isoformat()]=dayTotalRecovered
         countryObj["latest"]={"confirmed":dayTotalConfirmed,
                     "deaths":dayTotalDeaths,
                     "recovered":dayTotalRecovered
                     }
-
         countryObj["timelines"]={
             "confirmed": {"latest": dayTotalConfirmed,  "timeline":totoalCaseTimeSeries},
             "deaths":    {"latest": dayTotalDeaths,     "timeline":totoalDeathsTimeSeries},
-            "recovered": {"latest": dayTotalRecovered,  "timeline":totoalRecoveredTimeSeries}
         }
+        if doRecovered:
+            countryObj["recovered"]= {"latest": dayTotalRecovered,  "timeline":totoalRecoveredTimeSeries}
         # print(countryObj)
+        countryObjs.append(countryObj)
         outData["locations"].append(countryObj)
         seriesID+=1
-    return outData
+    return outData,countryObjs
 
 def daterange(start_date, end_date):
     for n in range(int ((end_date - start_date).days)):
@@ -323,23 +331,33 @@ def computeRegressionVars(timeseries,step_sigma=2):
             "sigma_err":sigmaErr}
 
 
+
 if __name__=="__main__":
     APIurl="https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=1"
     response= requests.get(APIurl)
     rawData = response.json()
-    # rawData=json.loads(open("static/js/seeCOVID19/clean.json","r").read())
-    with open("static/js/seeCOVID19/raw.json","w") as outFile:
-        outFile.write(json.dumps(rawData))
-    # rawData=json.loads(open("static/js/seeCOVID19/raw.json","r").read())
-    pickle.dump( rawData, open( "wip1.dat", "wb" ))
-    cleanData=cleanupData(rawData)
-    pickle.dump( cleanData, open( "wip2.dat", "wb" ))
-    injectedData=injectRegressions(cleanData)
-    pickle.dump( injectedData, open( "wip3.dat", "wb" ))
+    # print("Downloaded latest dataset")
+    # # rawData=json.loads(open("static/js/seeCOVID19/clean.json","r").read())
+    # with open("static/js/seeCOVID19/raw.json","w") as outFile:
+    #     outFile.write(json.dumps(rawData))
+    #     print("written raw.json")
     # rawData=json.loads(open("static/js/seeCOVID19/processed.json","r").read())
-    concavLogData=injectLogConcavity(injectedData)
-    pickle.dump( concavLogData, open( "wip4.dat", "wb" ))
-    # concavLogData = pickle.load( open( "wip3.dat", "rb" ) )
-    slopeLogData=injectLogSlope(concavLogData)
-    with open("static/js/seeCOVID19/processed.json","w") as outFile:
-        outFile.write(simplejson.dumps(slopeLogData,ignore_nan=True))
+    # mapdata=generateMap(rawData)
+    # pickle.dump( rawData, open( "wip1.dat", "wb" ))
+    # cleanData=cleanupData(rawData)
+    # pickle.dump( cleanData, open( "wip2.dat", "wb" ))
+    # injectedData=injectRegressions(cleanData)
+    # pickle.dump( injectedData, open( "wip3.dat", "wb" ))
+    # # rawData=json.loads(open("static/js/seeCOVID19/processed.json","r").read())
+    # concavLogData=injectLogConcavity(injectedData)
+    # pickle.dump( concavLogData, open( "wip4.dat", "wb" ))
+    # # concavLogData = pickle.load( open( "wip3.dat", "rb" ) )
+    # slopeLogData=injectLogSlope(concavLogData)
+    outdata,listobj=tallyRegions(rawData,["Canada","China","Australia"])
+    outdata,listobj2=tallyRegions(outdata,["World"])
+    listobj.append(listobj2[0])
+    print(listobj)
+    with open("static/js/seeCOVID19/supplyment.json","w") as outFile:
+        outFile.write(simplejson.dumps(listobj,ignore_nan=True))
+    # with open("static/js/seeCOVID19/map.json","w") as outFile:
+    #     outFile.write(simplejson.dumps(mapdata,ignore_nan=True))
