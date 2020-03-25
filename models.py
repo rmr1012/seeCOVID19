@@ -18,8 +18,10 @@ class logFitCache(models.Model):
     name=models.CharField(max_length=100,null=True)
 
 class mapData(models.Model):
-    country=models.CharField(max_length=25,null=False)
-    province=models.CharField(max_length=25,null=True)
+    country=models.CharField(max_length=40,null=False)
+    province=models.CharField(max_length=40,null=True)
+    class Meta:
+        unique_together = (("country","province"),)
 
 class locationData(models.Model):
     locationID=models.ForeignKey(mapData,on_delete=models.CASCADE)
