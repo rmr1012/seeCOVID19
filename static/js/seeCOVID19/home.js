@@ -323,7 +323,9 @@ $.getJSON('COVID19map', function(response){
        APIurl='COVID19timeseries?id='+dataID;
        $.getJSON(APIurl, function(response){
          rawData[dataID] = response;
-       }).complete(function(){repaintAllCharts(dataID)})
+       }).complete(function(){
+         repaintAllCharts(dataID)
+       })
 
 
      }
@@ -552,7 +554,9 @@ function getTimelineByID(locID,type="confirmed"){
          y: value
        })
     lastKey=key
+
   }
+  data.sort(function(a, b) {return a.t - b.t;})
  return data;
 }
 function getLogFitByID(locID,type="confirmed"){
