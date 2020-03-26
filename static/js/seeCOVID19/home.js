@@ -66,9 +66,9 @@ var isoCountries = {
         'United States': 'US',
     };
 
-var rawData
+var rawData={}
 var currentID=0;
-var forgottenCountries=[]
+const getKey = (mapData,val) => Object.keys(mapData).find(key => mapData[key]["id"] == val);
 function simpleConfig(label)
 {
   return {
@@ -237,10 +237,10 @@ function submitSub(email,name,id){
 }
 
 function getCountryCode(id){
-  return rawData["locations"][id]["country_code"]
+  return rawData[id]["country_code"]
 }
 function getProvince(id){
-  pstr=rawData["locations"][id]["province"];
+  pstr=rawData[id]["province"];
   if (pstr.split(",").length>1){
     console.log(pstr.split(",")[1])
     return statesDict[pstr.split(",")[1].trim()]
@@ -251,29 +251,25 @@ function getProvince(id){
   return null
 }
 function getCity(id){
-  pstr=rawData["locations"][id]["province"];
+  pstr=rawData[id]["province"];
   if (pstr.split(",").length>1){
     statesDict[pstr.split(",")[1]]
     return pstr
   }
   return null
 }
-$.getJSON('https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=0', function(response){
+$.getJSON('COVID19map', function(response){
 // $.getJSON('static/js/seeCOVID19/processed.json', function(response){
-  rawData = response;
-}).complete(function() {
-  $.getJSON('static/js/seeCOVID19/supplyment.json', function(response){
+  mapData = response;
   // $.getJSON('static/js/seeCOVID19/processed.json', function(response){
-    console.log(response)
-    rawData["locations"].push.apply(rawData["locations"],response)
+  console.log(response)
   }).complete(function() {
   console.log("JSON loaded")
-  console.log(rawData)
   $("#sub-signup").click(function(){submitSub($("#sub_email").val(),$("#sub_name").val(),currentID);
                                     M.Modal.getInstance(document.getElementById("subscribe-modal")).close();
                                     });
   $("#subscribe-open").click(function(){
-    outStr=rawData["locations"][currentID]["country"]
+    outStr=rawData[currentID]["country"]
     if(getProvince(currentID)!=null){
       outStr+=" "+getProvince(currentID)
     }
@@ -288,7 +284,8 @@ $.getJSON('https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=
 
   $("#country-select").change(function () {
        var dataID = this.value;
-       country=rawData["locations"][dataID]["country"]
+       country=getKey(mapData,dataID)
+       console.log("Found key",country,dataID)
        updateAllCharts(dataID)
 
        clearRegions()
@@ -298,8 +295,9 @@ $.getJSON('https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=
    });
    $("#region-select").change(function () {
         var dataID = this.value;
-        country=rawData["locations"][dataID]["country"]
-        region=rawData["locations"][dataID]["province"]
+        console.log(dataID)
+        country=getKey(mapData,$('#country-select').val())
+        region=getKey(mapData[country]["provinces"],dataID)
         updateAllCharts(dataID)
 
         clearCities()
@@ -310,10 +308,10 @@ $.getJSON('https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=
 
     $("#municipality-select").change(function () {
          var dataID = this.value;
-         country=rawData["locations"][dataID]["country"]
-         city=rawData["locations"][dataID]["province"]
-         region=statesDict[city.split(",")[1].trim()]
-         console.log("updating",country,region,city)
+         // country=getKey(mapData,$('#country-select').val())
+         // region=getKey(mapData[country]["provinces"],$('#region-select'))
+         // city=getKey(mapData[country]["provinces"][region]["cities"],dataID)
+         // console.log("updating",country,region,city)
          updateAllCharts(dataID)
          M.toast({html: 'Some municipalities may not be fitted properly due to few data points or bad data'})
 
@@ -321,47 +319,22 @@ $.getJSON('https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=
 
      function updateAllCharts(dataID){
 
-       if (forgottenCountries.includes(rawData["locations"][dataID]["country"])){
-         console.log("fixing forgotten country edge case, grabbing chart data")
+       console.log("Normal, updating charts for ",dataID)
+       APIurl='COVID19timeseries?id='+dataID;
+       $.getJSON(APIurl, function(response){
+         rawData[dataID] = response;
+       }).complete(function(){repaintAllCharts(dataID)})
 
-
-        callList=[];
-        for (locationID in rawData["locations"]){
-          if (rawData["locations"][locationID]["country"]==rawData["locations"][dataID]["country"] &
-              rawData["locations"][locationID]["province"]!='' ){
-                APIurl='https://coronavirus-tracker-api.herokuapp.com/v2/locations/'+rawData["locations"][locationID]["id"]+'?source=jhu&timeline=1';
-                callList.push($.getJSON(APIurl))
-          }
-        }
-
-        Promise.all(callList).then(results => {
-            // process results here
-            console.log(results);      // from options1 request
-            rawData["locations"][dataID] = combineRegions(results);
-            repaintAllCharts(dataID)
-        }).catch(err => {
-            console.log(err);
-        });
-
-
-       }
-       else{
-         console.log("Normal, updating charts for ",dataID)
-         APIurl='https://coronavirus-tracker-api.herokuapp.com/v2/locations/'+dataID+'?source=jhu';
-         $.getJSON(APIurl, function(response){
-           rawData["locations"][dataID] = response["location"];
-         }).complete(function(){repaintAllCharts(dataID)})
-       }
 
      }
 
      function repaintAllCharts(dataID) {
 
-       $('#latest').text("Confirmed: "+rawData["locations"][dataID]["latest"]["confirmed"]+
-                         "    Deaths: "   +rawData["locations"][dataID]["latest"]["deaths"]+
-                         "    Recovered: "+rawData["locations"][dataID]["latest"]["recovered"]
+       $('#latest').text("Confirmed: "+rawData[dataID]["latest"]["confirmed"]+
+                         "    Deaths: "   +rawData[dataID]["latest"]["deaths"]+
+                         "    Recovered: "+rawData[dataID]["latest"]["recovered"]
                         );
-        $("#data-ts").text("Data as of "+moment(rawData['locations'][dataID]["last_updated"]).format('MMMM Do YYYY, h:mm:ss a'))
+        $("#data-ts").text("Data as of "+moment(rawData[dataID]["last_updated"]).format('MMMM Do YYYY, h:mm:ss a'))
        baselineData=getTimelineByID(dataID,type="confirmed")
        casesLinChart.data.datasets[1].data=baselineData
        casesLogChart.data.datasets[1].data=baselineData
@@ -429,60 +402,21 @@ $.getJSON('https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=
        currentID=dataID
     }
 
-    function getForgottenList(){
-      allLocations = new Set()
-      uniqueCountries = new Set()
-      for (var locationID in rawData["locations"]){
-        allLocations.add(rawData["locations"][locationID]["country"])
-        if (rawData["locations"][locationID]["province"]==''){
-          uniqueCountries.add(rawData["locations"][locationID]["country"])
-        }
-      }
-      return Array.from([...allLocations].filter(x => !uniqueCountries.has(x)))
-    }
      function updateCountryList(){
        repaintCountryList();
-       // forgottenCountries=getForgottenList()
-       // for (i in forgottenCountries){
-       //   console.log('FORGOTTEN! '+forgottenCountries[i])
-       //   newObj={}
-       //   newObj["country"]=forgottenCountries[i]
-       //   newObj["country_code"]=isoCountries[forgottenCountries[i]]
-       //   newObj["province"]="TBD"
-       //   rawData["locations"].push(newObj)
-       //
-       //   APIurl='https://coronavirus-tracker-api.herokuapp.com/v2/locations?country_code='+isoCountries[forgottenCountries[i]]+'&source=jhu';
-       //   $.getJSON(APIurl, function(response){
-       //     console.log(response)
-       //     newIDCtr=getIDbyLocation(response["locations"][0]["country"],'TBD')
-       //     console.log("adding fotgotten coutnry back "+newIDCtr)
-       //     console.log(response)
-       //     rawData["locations"][newIDCtr]["latest"] = response["latest"]
-       //     rawData["locations"][newIDCtr]["province"] = ""
-       //   }).complete(function() {
-       //     if(getForgottenList().length ==0){
-       //       console.log("all fetched up!")
-       //       repaintCountryList();
-       //     }
-       //   });
-       // }
-
-       // return countries
      }
      function repaintCountryList(){
        countriesArr =[]
-       for (var locationID in rawData["locations"]){
-         if (rawData["locations"][locationID]["province"]==''){
-           console.log(rawData["locations"][locationID])
-           countriesArr.push({country:rawData["locations"][locationID]["country"],id:locationID,cases:rawData["locations"][locationID]["latest"]["confirmed"]})
-         }
+       for (var country in mapData){
+           console.log(mapData[country]["id"],mapData[country]["cases"])
+           countriesArr.push({country:country,id:mapData[country]["id"],cases:mapData[country]["cases"]})
+
        }
-       // use Set to make sure there are no duplicates
-       // countriesArr = Array.from(countries);
+
        countriesArr.sort(function(a, b) {return b.cases - a.cases;})
-       // console.log(countriesArr)
+
        for (var i in countriesArr){
-         console.log(countriesArr[i])
+         // console.log(countriesArr[i])
          if (i==0){
            addCountry(countriesArr[i],true)
            updateAllCharts(countriesArr[i]["id"])
@@ -513,7 +447,7 @@ $.getJSON('https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=
          $("#municipality-select").formSelect();
          return
        }
-       if (isEmpty(mapDat[country])){
+       if (isEmpty(mapData[country]["provinces"])){
          console.log("disable region dropdown")
          $("#region-select").prop("disabled", true);
          $("#municipality-select").prop("disabled", true);
@@ -522,19 +456,13 @@ $.getJSON('https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=
          console.log("enable region dropdown")
          $("#region-select").prop("disabled", false);
          $("#municipality-select").prop("disabled", false);
-         addRegion({province:"Overall",id:$('#country-select').val(),case:rawData["locations"][$('#country-select').val()]["latest"]["confirmed"]},true)
+         addRegion({province:"Overall",id:$('#country-select').val(),cases:mapData[country]["cases"]},true)
          var regionsList=[]
-         for(region in mapDat[country]){
-           console.log(region)
-           for (var locationID in rawData["locations"]){
-             // if (rawData["locations"][locationID]["country"]=="US"){
-             //   console.log(rawData["locations"][locationID]["province"])
-             // }
-             if (rawData["locations"][locationID]["province"]==region){
-               regionsList.push({province:region,id:locationID,cases:rawData["locations"][locationID]["latest"]["confirmed"]})
-             }
-           }
+         for(province in mapData[country]["provinces"]){
+           console.log(province)
+           regionsList.push({province:province,id:mapData[country]["provinces"][province]["id"],cases:mapData[country]["provinces"][province]["cases"]})
          }
+
          console.log(regionsList)
          regionsList.sort(function(a, b) {return b.cases - a.cases;})
          for (var i in regionsList){
@@ -558,32 +486,27 @@ $.getJSON('https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=
      }
 
      function updateCityList(country,region){
-
-       if (region.trim() == ''){
-         console.log("overall region detected")
+       // console.log(country,region)
+       if (region == undefined){
+         console.log("overall city detected")
          clearCities()
          $("#municipality-select").prop("disabled", true);
          $("#municipality-select").formSelect();
          return
        }
-       if (isEmpty(mapDat[country][region])){
+       else if (isEmpty(mapData[country]["provinces"][region]["cities"])){
          console.log("disable city dropdown")
          $("#municipality-select").prop("disabled", true);
        }
        else{
          console.log("enable city dropdown")
          $("#municipality-select").prop("disabled", false);
-         addCity({city:"Overall",id:$('#region-select').val(),case:rawData["locations"][$('#region-select').val()]["latest"]["confirmed"]},true)
-         var citiesList=[]
-         for(cityID in mapDat[country][region]){
-           var city = mapDat[country][region][cityID]
-           console.log(city)
-           for (var locationID in rawData["locations"]){
+         addCity({city:"Overall",id:$('#region-select').val(),case:mapData[country]["provinces"][region]["cases"]},true)
 
-             if (rawData["locations"][locationID]["province"]==city){
-               citiesList.push({city:city,id:locationID,cases:rawData["locations"][locationID]["latest"]["confirmed"]})
-             }
-           }
+         var citiesList=[]
+         for(city in mapData[country]["provinces"][region]["cities"]){
+            console.log(city)
+            citiesList.push({city:city,id:mapData[country]["provinces"][region]["cities"][city],cases:0})
          }
          console.log(citiesList)
          citiesList.sort(function(a, b) {return b.cases - a.cases;})
@@ -606,12 +529,10 @@ $.getJSON('https://coronavirus-tracker-api.herokuapp.com/v2/locations?timelines=
        $("#municipality-select").empty()
      }
 
-
-   });
 });
 function getIDbyLocation(country,province){
-  for (locationID in rawData["locations"]){
-    if (rawData["locations"][locationID]["country"] == country && rawData["locations"][locationID]["province"] == province){
+  for (locationID in rawData){
+    if (rawData[locationID]["country"] == country && rawData[locationID]["province"] == province){
       console.log("found ID!",locationID)
       return locationID
     }
@@ -621,11 +542,11 @@ function getTimelineByID(locID,type="confirmed"){
   var data = [];
   var lastKey="";
 
-  for(var key in rawData["locations"][locID]["timelines"][type]["timeline"]){
-    var value = rawData["locations"][locID]["timelines"][type]["timeline"][key]
+  for(var key in rawData[locID][type]){
+    var value = rawData[locID][type][key]
     // console.log(key,value)
     date= moment(key)
-    if(rawData["locations"][locID]["timelines"][type]["timeline"][key] != rawData["locations"][locID]["timelines"][type]["timeline"][lastKey])
+    if(rawData[locID][type][key] != rawData[locID][type][lastKey])
     data.push({
          t: date.valueOf(),
          y: value
@@ -638,7 +559,7 @@ function getLogFitByID(locID,type="confirmed"){
   var data = [];
   var lastKey="";
   var outData=null;
-  console.log(rawData["locations"][locID]["country"])
+  console.log(rawData[locID]["country"])
   $.ajax({
           type: "POST",
           url: window.location.pathname+"curveFit",//other option is search
