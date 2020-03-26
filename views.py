@@ -345,7 +345,7 @@ def subscribeAPI(request):
 def curveFitAPI(request):
     if request.method == 'POST':
         outdata={}
-        jsonData=json.loads(request.body)
+        jsonData=json.loads(request.body.decode('utf-8'))
         # try:
         print(jsonData["series"])
         outdata=computeRegressionVars(jsonData["series"])
@@ -406,8 +406,11 @@ def dailyPollAPI(request):
 
 
 def computeRegressionVars(timeseries):
+    timeseries=sorted(timeseries,key=lambda srs: srs["t"])
+
     y=np.array([val["y"] for val in timeseries],dtype=np.uint32)
     t=np.array([val["t"] for val in timeseries],dtype=np.uint64)/1000/24/3600
+    print(y,t)
     day0=t[0]
     t=t-t[0]
     dayz=t[-1]
