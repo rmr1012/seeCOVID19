@@ -366,7 +366,7 @@ def mapAPI(request):
 @csrf_exempt
 def timeseriesAPI(request):
     if request.method == 'GET':
-        id=request.GET["id"]
+        id=int(request.GET["id"])
         mapdata=mapData.objects.get(id=id)
         country=mapdata.country
         if mapdata.province == "nan":
@@ -374,12 +374,22 @@ def timeseriesAPI(request):
         else:
             province=mapdata.province
         casesList=list(locationData.objects.filter(locationID=id,type=0).values())
+        casesList=sorted(casesList,key= lambda x : x["date"].isoformat())
+
         deathsList=list(locationData.objects.filter(locationID=id,type=1).values())
+        deathsList=sorted(deathsList,key= lambda x : x["date"].isoformat())
+
         recoveredList=list(locationData.objects.filter(locationID=id,type=2).values())
+        recoveredList=sorted(recoveredList,key= lambda x : x["date"].isoformat())
+
         last_updated=casesList[-1]["date"].isoformat()
         latest_confirmed=casesList[-1]["count"]
         latest_deaths=deathsList[-1]["count"]
+        latest_recovered=0
+
         latest_recovered=recoveredList[-1]["count"]
+        recoveredList=list(locationData.objects.filter(locationID=id,type=2).values())
+
         casesDict = { i["date"].isoformat() : i["count"] for i in casesList }
         deathsDict = { i["date"].isoformat() : i["count"] for i in deathsList }
         recoveredDict = { i["date"].isoformat() : i["count"] for i in recoveredList }
