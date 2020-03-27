@@ -429,34 +429,32 @@ def computeRegressionVars(timeseries):
     model = step_mod
     # make named parameters, giving initial values:
 
-    for sig in [0.1,5,.5,3,2]:
+    for sig in [0.1,7,.5,4,2]:
         pars = model.make_params(line_intercept=ydata.min(),
                                  line_slope=0,
                                  step_center=xdata.mean(),
                                  step_amplitude=ydata.std(),
                                  step_sigma=sig)
         # fit data to this model with these parameters
-        out = model.fit(ydata, pars, x=xdata)
-        print(out.params["step_sigma"].value)
-        if out.params["step_sigma"].value >0:
-            break
+        try:
+            print("Fitting curve...")
+            out = model.fit(ydata, pars, x=xdata)
+            print("curve fitted!")
+        except Exception as e:
+            print(e)
+            print("Fit exception hit, retrying with other inits")
+        #composite_err=(out.params["step_sigma"].stderr/out.params["step_sigma"].value)+(out.params["step_center"].stderr/out.params["step_center"].value)+(out.params["step_amplitude"].stderr/out.params["step_amplitude"].value)
+        #print("composite error = ",composite_err)
+        if out.params["step_sigma"].value >0 and out.params["step_sigma"].value <30:
+           break
 
     print(fit_report(out))
-    relativeErrors=[]
-    values=[]
-
-    for name, param in out.params.items():
-        values.append(param.value)
-        try:
-            relativeErrors.append(100*param.stderr/param.value)
-        except:
-            relativeErrors.append(None)
-    amplitudeErr=relativeErrors[0]
-    amplitude=values[0]
-    centerErr=relativeErrors[1]
-    center=values[1]
-    sigmaErr=relativeErrors[2]
-    sigma=values[2]
+    amplitudeErr=(out.params["step_amplitude"].stderr/out.params["step_amplitude"].value)
+    amplitude=out.params["step_amplitude"].value
+    centerErr=(out.params["step_center"].stderr/out.params["step_center"].value)
+    center=out.params["step_center"].value
+    sigmaErr=(out.params["step_sigma"].stderr/out.params["step_sigma"].value)
+    sigma=out.params["step_sigma"].value
 
 
     # print("Time Series Day 0",day0)
