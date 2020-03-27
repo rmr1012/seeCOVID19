@@ -323,6 +323,7 @@ $.getJSON('COVID19map', function(response){
        APIurl='COVID19timeseries?id='+dataID;
        $.getJSON(APIurl, function(response){
          rawData[dataID] = response;
+         console.log(rawData)
        }).complete(function(){
          repaintAllCharts(dataID)
        })
@@ -347,11 +348,7 @@ $.getJSON('COVID19map', function(response){
        logSlopeData=getLogSlopeTimelineByID(dataID,type="confirmed")
        casesSlopeChart.data.datasets[0].data=logSlopeData
 
-       fittedData=getLogFitByID(dataID,type="confirmed")
-       if (fittedData != {}){
-         casesLinChart.data.datasets[0].data=fittedData
-         casesLogChart.data.datasets[0].data=fittedData
-       }
+       getLogFitByID(dataID,type="confirmed")
 
        casesLinChart.update()
        casesLogChart.update()
@@ -369,11 +366,7 @@ $.getJSON('COVID19map', function(response){
        logSlopeData=getLogSlopeTimelineByID(dataID,type="deaths")
        deathsSlopeChart.data.datasets[0].data=logSlopeData
 
-       fittedData=getLogFitByID(dataID,type="deaths")
-       if (fittedData != {}){
-         deathsLinChart.data.datasets[0].data=fittedData
-         deathsLogChart.data.datasets[0].data=fittedData
-       }
+       getLogFitByID(dataID,type="deaths")
 
        deathsLinChart.update()
        deathsLogChart.update()
@@ -391,11 +384,8 @@ $.getJSON('COVID19map', function(response){
        logSlopeData=getLogSlopeTimelineByID(dataID,type="recovered")
        recoveredSlopeChart.data.datasets[0].data=logSlopeData
 
-       fittedData=getLogFitByID(dataID,type="recovered")
-       if (fittedData != {}){
-         recoveredLinChart.data.datasets[0].data=fittedData
-         recoveredLogChart.data.datasets[0].data=fittedData
-       }
+       getLogFitByID(dataID,type="recovered")
+
 
        recoveredLinChart.update()
        recoveredLogChart.update()
@@ -508,7 +498,7 @@ $.getJSON('COVID19map', function(response){
          var citiesList=[]
          for(city in mapData[country]["provinces"][region]["cities"]){
             console.log(city)
-            citiesList.push({city:city,id:mapData[country]["provinces"][region]["cities"][city],cases:0})
+            citiesList.push({city:city,id:mapData[country]["provinces"][region]["cities"][city]["id"],cases:mapData[country]["provinces"][region]["cities"][city]["cases"]})
          }
          console.log(citiesList)
          citiesList.sort(function(a, b) {return b.cases - a.cases;})
@@ -559,6 +549,50 @@ function getTimelineByID(locID,type="confirmed"){
   data.sort(function(a, b) {return a.t - b.t;})
  return data;
 }
+function updateLogFitByID(outData,type){
+  console.log("in update log callback!")
+  if (outData==null){
+    return null
+  }
+  console.log(outData);
+  day0=moment(outData["day0"],'x')
+  amplitude=outData["amplitude"]
+  center=outData["center"]
+  sigma=outData["sigma"]
+
+ let future10  = moment(new Date()).add(10,'days');
+ data=[]
+ dt=0
+ for (var m = day0; m.isBefore(future10); m.add(1, 'days')) {
+   data.push({
+        t: m.valueOf(),
+        y: amplitude*(1-(1/(1+Math.exp((dt-center)/sigma))))
+      })
+   dt+=1;
+ }
+
+  if (data != {}){
+    if(type=="confirmed"){
+      casesLinChart.data.datasets[0].data=data
+      casesLogChart.data.datasets[0].data=data
+      casesLinChart.update()
+      casesLogChart.update()
+    }
+    else if(type=="deaths"){
+      deathsLinChart.data.datasets[0].data=data
+      deathsLogChart.data.datasets[0].data=data
+      deathsLinChart.update()
+      deathsLogChart.update()
+    }
+    else if(type=="recovered"){
+      recoveredLinChart.data.datasets[0].data=data
+      recoveredLogChart.data.datasets[0].data=data
+      recoveredLinChart.update()
+      recoveredLogChart.update()
+    }
+  }
+}
+
 function getLogFitByID(locID,type="confirmed"){
   var data = [];
   var lastKey="";
@@ -573,33 +607,14 @@ function getLogFitByID(locID,type="confirmed"){
           success: function(response) {
               // console.log(response);
               outData=response;
+              updateLogFitByID(outData,type)
           },
           timeout: 3000,
           error: function(response) {
               console.log(response);
           }
   });
-  if (outData==null){
-    return null
-  }
-  console.log(outData);
-  day0=moment(outData["day0"],'x')
-  amplitude=outData["amplitude"]
-  center=outData["center"]
-  sigma=outData["sigma"]
 
- let future10  = moment(new Date()).add(10,'days');
-
- dt=0
- for (var m = day0; m.isBefore(future10); m.add(1, 'days')) {
-   data.push({
-        t: m.valueOf(),
-        y: amplitude*(1-(1/(1+Math.exp((dt-center)/sigma))))
-      })
-   dt+=1;
- }
-
- return data;
 }
 function getLogConTimelineByID(locID,type="confirmed"){
  var inData= getLogSlopeTimelineByID(locID,"confirmed")

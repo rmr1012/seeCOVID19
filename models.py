@@ -1,6 +1,19 @@
 from django.db import models
 
-# Create your models here.
+class CompressedTextField(models.TextField):
+
+    def __init__(self, compress_level=6, *args, **kwargs):
+        self.compress_level = compress_level
+        super(CompressedTextField, self).__init__(*args, **kwargs)
+
+    def to_python(self, value):
+        value = super(CompressedTextField, self).to_python(value)
+        return zlib.compress(value.encode(), self.compress_level)
+
+    def get_prep_value(self, value):
+        value = super(CompressedTextField, self).get_prep_value(value)
+        return zlib.decompress(value).decode()
+
 class subscriberList(models.Model):
     countryCode=models.CharField(max_length=5)
     province=models.CharField(max_length=20,null=True)
@@ -30,3 +43,6 @@ class locationData(models.Model):
     type=models.IntegerField(null=False) # 0 is case 1 is death
     class Meta:
         unique_together = (("locationID","date","type"),)
+# class mapCache(model.Model):
+#     date=models.DateTimeField(null=False,unique=True)
+#     mapData = CompressedTextField(null=False)
