@@ -287,7 +287,9 @@ def makeDayDF(day):
         fixMergeWorld["Country/Region"]="World"
         fixMergeDF=fixMergeDF.append(fixMergeWorld,ignore_index=True)
 
-        return fixMergeDF
+        fixMergeStateDF=pd.merge(fixMergeDF,JHUDailyStateDf,how='outer')
+        fixMergeStateDF
+        return fixMergeStateDF
     return None
 
 def updateBaseLineDeathsData():
@@ -407,10 +409,10 @@ def dailyPollAPI(request):
 
 def computeRegressionVars(timeseries):
     timeseries=sorted(timeseries,key=lambda srs: srs["t"])
-
     y=np.array([val["y"] for val in timeseries],dtype=np.uint32)
     t=np.array([val["t"] for val in timeseries],dtype=np.uint64)/1000/24/3600
-    print(y,t)
+
+    print(y)
     day0=t[0]
     t=t-t[0]
     dayz=t[-1]
