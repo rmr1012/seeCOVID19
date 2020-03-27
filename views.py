@@ -16,7 +16,7 @@ import sys
 
 from datetime import datetime,timedelta
 
-from dataProcessor import *
+from seeCOVID19.dataProcessor import *
 
 currentMap={"date":datetime.today(),"data":makeMap()}
 SITES={}
