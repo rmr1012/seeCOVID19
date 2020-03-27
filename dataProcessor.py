@@ -216,7 +216,7 @@ def makeMap():
                     countyDict={}
                     for index,county in df_state.iterrows():
 
-                        casesList=list(locationData.objects.filter(locationID=province["id"],type=0).values())
+                        casesList=list(locationData.objects.filter(locationID=county["id"],type=0).values())
                         try:
                             latest_confirmed=casesList[-1]["count"]
                         except:
