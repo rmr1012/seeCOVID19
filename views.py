@@ -115,4 +115,5 @@ def timeseriesAPI(request):
 def dailyPollAPI(request):
     if request.method == 'GET':
         count=storeTodayData()
-        return JsonResponse({"count":count})
+        count1=storeYesterdayData()
+        return JsonResponse({"count":count+count1})

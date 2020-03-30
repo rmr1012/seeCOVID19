@@ -127,6 +127,9 @@ def retraceDailyData():
 def storeTodayData():
     today=datetime.today()
     return storeDayData(today)
+def storeYesterdayData():
+    yesterday=datetime.today()-timedelta(1)
+    return storeDayData(yesterday)
 
 def storeDayData(day):
     dayDF=makeDayDF(day)
