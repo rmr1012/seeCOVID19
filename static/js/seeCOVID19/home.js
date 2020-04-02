@@ -68,7 +68,7 @@ var isoCountries = {
 
 var rawData={}
 var currentID=0;
-const getKey = (mapData,val) => Object.keys(mapData).find(key => mapData[key]["id"] == val);
+var getKey = (mapData,val) => Object.keys(mapData).find(key => mapData[key]["id"] == val);
 function simpleConfig(label)
 {
   return {
@@ -109,7 +109,8 @@ function simpleConfig(label)
           time: {
                   displayFormats: {
                       quarter: 'MMM DD'
-                  }
+                  },
+                  unit: 'day'
               },
           distribution: 'linear',
           offset: true,
@@ -159,7 +160,8 @@ function derivativeConfig(label){
           time: {
                   displayFormats: {
                       quarter: 'MMM DD'
-                  }
+                  },
+                  unit: 'day'
               },
           distribution: 'linear',
           offset: true,
@@ -537,7 +539,7 @@ function getTimelineByID(locID,type="confirmed"){
   for(var key in rawData[locID][type]){
     var value = rawData[locID][type][key]
     // console.log(key,value)
-    date= moment(key)
+    date= moment(key).add(7, 'hours')
     if(rawData[locID][type][key] != rawData[locID][type][lastKey])
     data.push({
          t: date.valueOf(),
