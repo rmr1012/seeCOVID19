@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+available<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -13,7 +13,7 @@
   <meta property="og:title" content="COVID-19 Data Visualized" />
   <meta property="og:url" content="http://dennisren.com/COVID19" />
   <meta property="og:type" content="website" />
-  <meta property="og:description" content="Platting the COVID-19 pandemic with a bit of math" />
+  <meta property="og:description" content="Plotting the COVID-19 pandemic with a bit of math" />
   <meta property="og:image" content="http://dennisren.com/static/img/seeCOVID19/snip.png" />
   <meta property="og:image:type" content="image/jpeg" />
   <meta property="og:image:width" content="400" />
@@ -73,12 +73,12 @@
                       <h4>Legal Stuff</h4>
                       <a class="waves-effect waves-light btn modal-trigger" href="#disclamer-modal">Disclaimer</a>
                       <h5>TL;DR</h5>
-                      <p>Basically, I'm not a medical professional nor an epidemiologist. The data shown here are entirly sourced from public sources listed below.
-                        <b>This page does NOT represent my opinion</b>, it's merely a reflection of a standard set of mathmatics applied to the set of publically avaliable data.
-                        All projection and forecast shown on this page are purely results from mathmatical computation.
+                      <p>Basically, I'm not a medical professional nor an epidemiologist. The data shown here are entirely sourced from public sources listed below.
+                        <b>This page does NOT represent my opinion</b>, it's merely a reflection of a standard set of mathematics applied to the set of publicly available data.
+                        All projection and forecast shown on this page are purely results from mathematical computation.
                       </p>
                       <h4>Data Source and Credits</h4>
-                      <p>The data is sourced direcly from JHU's daily reports <a href="https://github.com/CSSEGISandData/COVID-19">CSSEGISandData/COVID-19</a> the additional computation on this dataset is performed on my server on a daily
+                      <p>The data is sourced directly from JHU's daily reports <a href="https://github.com/CSSEGISandData/COVID-19">CSSEGISandData/COVID-19</a> the additional computation on this dataset is performed on my server on a daily
                         basis</p>
                       <p>Credits to the following amazing tools and frameworks</p>
                       <a href="https://materializecss.com/">Materialize</a>
@@ -154,7 +154,7 @@
               <div class="collapsible-header"><i class="material-icons">functions</i>Methodology</div>
               <div class="collapsible-body">
                 <h4>Fitted Logistic Curves</h4>
-                <p>*For begineers check out this <a href="https://www.youtube.com/watch?v=Kas0tIxDvrg">Video by 3Blue1Brown</a> on the math behind pandemic growth</p>
+                <p>*For beginners check out this <a href="https://www.youtube.com/watch?v=Kas0tIxDvrg">Video by 3Blue1Brown</a> on the math behind pandemic growth</p>
                 <p>The total confirmed, deaths, and recovery curves of a pandemic roughly follow a logistic curve over its course in a community. Of course, there are a lot more factors that come into play when modeling an pandemic. This study makes NO attempts to account for explicit factors.</p>
                 <p>Each curve in the dataset is fitted to the following ideal logistic model</p>
                 <p>$$f(x;A,\mu ,\sigma)=A[1-\frac{1}{1+e^{\alpha}}]$$</p>
@@ -166,10 +166,10 @@
                 <p>Each curve is fed through a least-square gradient decent optimizer against the ideal model to compute the parameters.
                   <b>Note that not all datasets can be successfully fitted</b>, the optimizer can't converge on those datasets with too little data points or non-ideal shape. </p>
                 <p>I decided to plot ahead the fitted curve 10 days ahead of now so you could visualize the current trend.
-                  Please also note that <b>this is NOT a prediction of the course of the pandemic</b>, it's merely a rough forecast from the current known datapoints. <b>No one can predict the future.</b></p>
+                  Please also note that <b>this is NOT a prediction of the course of the pandemic</b>, it's merely a rough forecast from the current known data points. <b>No one can predict the future.</b></p>
 
                 <h4>Derivatives of Logarithmic Data</h4>
-                <p>During exponantial growth, the log plot shows a linear growth. The slope of the log chart therefore informs the speed of the growth. The slope chart s(t) is defined as </p>
+                <p>During exponential growth, the log plot shows a linear growth. The slope of the log chart therefore informs the speed of the growth. The slope chart s(t) is defined as </p>
                 <p>$$s(t)=\frac{\mathrm{d} }{\mathrm{d} t}log_{10}(y)$$</p>
                 <p>Simalar logic folows. In a polynomial function, the second derivative indicates concavity. The second derivative on the linearized data gives us the concavity of the growth curve.
                   Positive value on this curve means accelerating spread, while negative value points to decelerating spread. The concavity chart is defined as</p>
