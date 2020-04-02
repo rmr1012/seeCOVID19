@@ -339,7 +339,7 @@ $.getJSON('COVID19map', function(response){
                          "    Deaths: "   +rawData[dataID]["latest"]["deaths"]+
                          "    Recovered: "+rawData[dataID]["latest"]["recovered"]
                         );
-        $("#data-ts").text("Data as of "+moment(rawData[dataID]["last_updated"]).format('MMMM Do YYYY, h:mm:ss a'))
+        $("#data-ts").text("Data as of "+moment(rawData[dataID]["last_updated"]).add(7,"hours").format('MMMM Do YYYY'))
        baselineData=getTimelineByID(dataID,type="confirmed")
        casesLinChart.data.datasets[1].data=baselineData
        casesLogChart.data.datasets[1].data=baselineData
