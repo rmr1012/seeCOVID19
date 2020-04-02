@@ -125,10 +125,10 @@ def retraceDailyData():
         storeDayData(day)
 
 def storeTodayData():
-    today=datetime.today()
+    today=datetime.today().date()
     return storeDayData(today)
 def storeYesterdayData():
-    yesterday=datetime.today()-timedelta(1)
+    yesterday=(datetime.today()-timedelta(1)).date()
     return storeDayData(yesterday)
 
 def storeDayData(day):
