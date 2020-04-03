@@ -9,5 +9,5 @@ urlpatterns = [
     path(r'timeseries', timeseriesAPI, name='timeseriesAPI'),  #loading end point, return 1 pair
     path(r'dailypoll', dailyPollAPI, name='dailyPollAPI'),  #loading end point, return 1 pair
     path(r'map', mapAPI, name='mapAPI'),  #loading end point, return 1 pair
-
+    path(r'dem', demographicsAPI, name='demographicsAPI'),  #loading end point, return 1 pair
 ]

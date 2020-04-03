@@ -15,10 +15,14 @@ import requests
 import sys
 
 from datetime import datetime,timedelta
-
+from fuzzywuzzy import process
 from seeCOVID19.dataProcessor import *
 
 currentMap={"date":datetime.today(),"data":makeMap()}
+worldDem= pd.read_csv("seeCOVID19/worldPop.csv", sep=",")
+stateDem= pd.read_csv("seeCOVID19/USStatePop.csv", sep=",")
+countyDem= pd.read_csv("seeCOVID19/USCountyPop.csv", sep=",")
+
 SITES={}
 
 
@@ -110,6 +114,35 @@ def timeseriesAPI(request):
         return JsonResponse({"country":country,"province":province,"last_updated":last_updated ,
                             "latest":{"confirmed":latest_confirmed,"deaths":latest_deaths,"recovered":latest_recovered},
                             "confirmed":casesDict,"deaths":deathsDict,"recovered":recoveredDict})
+@csrf_exempt
+def demographicsAPI(request):
+    if request.method == 'GET':
+        country=request.GET.get('country')
+        state=request.GET.get('state')
+        county=request.GET.get('county')
+        print(country,state,county)
+
+        if county != "":
+            print("county detected!")
+            myStateDem=countyDem[countyDem["state"]==state]
+            options=list(myStateDem["county"])
+            rowID = options.index(process.extractOne(county,options)[0])
+            print(rowID,myStateDem.iloc[rowID,:])
+            row=myStateDem.iloc[rowID,:]
+            pop=int(row["pop"])
+            density=int(row["density"])
+            # row=
+        elif state != "":
+            row=stateDem[stateDem["state"]==state]
+            print("state detected")
+            pop=int(row["pop"])
+            density=int(row["density"])
+        else:
+            print("country detected")
+            row=worldDem[worldDem["country"]==country]
+            pop=int(row["pop"])
+            density=int(row["density"])
+        return JsonResponse({"pop":pop,"density":density})
 
 @csrf_exempt
 def dailyPollAPI(request):

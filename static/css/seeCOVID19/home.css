@@ -26,3 +26,15 @@
   position: absolute;
   margin-top: 10px;
 }
+
+#odds img{
+  height:30px;
+  margin-right:20px;
+}
+#odds .fas{
+  height:30px;
+  margin-right:20px;
+}
+.chance-covid{
+  color:rgb(255,0,86);
+}

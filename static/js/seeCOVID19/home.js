@@ -300,6 +300,7 @@ $.getJSON('COVID19map', function(response){
         console.log(dataID)
         country=getKey(mapData,$('#country-select').val())
         region=getKey(mapData[country]["provinces"],dataID)
+
         updateAllCharts(dataID)
 
         clearCities()
@@ -330,6 +331,82 @@ $.getJSON('COVID19map', function(response){
          repaintAllCharts(dataID)
        })
 
+
+       targetType=2
+       city=$("#municipality-select option:selected").text()
+       state=$("#region-select option:selected").text()
+       if (city=="Overall" | city == ''){
+         city=""
+         targetType=1
+       }
+       if (state=="Overall" | state == ''){
+         state=""
+         targetType=0
+       }
+
+       country=$("#country-select option:selected").text()
+       console.log("Updating dem data",targetType,country,state,city)
+       $.ajax({
+               type: "GET",
+               url: window.location.pathname+"dem",//other option is search
+               dataType: "json",
+               data : {country:country,state:state,county:city},
+               success: function(response) {
+                   // console.log(response);
+
+                   outData=response;
+                   pop=outData["pop"]
+                   density=outData["density"]
+                   unit="square kilometer"
+                   if(targetType==0){
+                     comfirmed=mapData[country]["cases"]
+                     outStr=country
+                     if(country=="US"){unit="square mile"}
+                   }
+                   else if(targetType==1){
+                     comfirmed=mapData[country]["provinces"][state]["cases"]
+                     outStr=state+", "+country
+                     unit="square mile"
+                   }
+                   else if(targetType==2){
+                     comfirmed=mapData[country]["provinces"][state]["cities"][city]["cases"]
+                     outStr=city+", "+state+", "+country
+                     unit="square mile"
+                   }
+
+                   odds=Math.round(pop/comfirmed)
+                   console.log("odds here",odds,pop,comfirmed)
+                   ratio=density/odds
+                   if (ratio>1){
+                     ratio1=Math.round(ratio)
+                     densityRatioStr=ratio1+" cases per "+unit
+                   }
+                   else{
+                     ratio2=Math.round(1/ratio)
+                     densityRatioStr="1 cases every "+ratio2+" "+unit+"s"
+                   }
+
+                   $("#subscribe-location").text(outStr);
+                   $("#demo-statement").html("@ "+outStr+"<br> 1 in "+odds+" people have Coronavirus<br>That's "+densityRatioStr)
+
+                   $(".chance-covid").remove()
+                   cardHtml='<li class="collection-item chance-covid"> <div class="valign-wrapper"><img src="/static/img/seeCOVID19/virus.png">1 in&nbsp;<span class="odds">'+odds+'</span>&nbsp;chance: you have COVID-19 @ '+outStr+'</span></div></li>'
+                   $('#odds li .odds').each(function(i, obj) {
+                      itemOdd=parseInt($(obj).text());
+                      if(odds<itemOdd){
+                        $(obj).parent().parent().before(cardHtml);
+                        return false
+                      }
+                   });
+                   $("#demographics").show()
+               },
+               timeout: 3000,
+               error: function(response) {
+                   console.log(response);
+                   console.log("no dem data found")
+                   $("#demographics").hide()
+               }
+       });
 
      }
 
@@ -604,7 +681,6 @@ function getLogFitByID(locID,type="confirmed"){
           type: "POST",
           url: window.location.pathname+"curveFit",//other option is search
           dataType: "json",
-          async: false,
           data : JSON.stringify({series:getTimelineByID(locID,type)}),
           success: function(response) {
               // console.log(response);
