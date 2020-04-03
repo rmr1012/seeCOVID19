@@ -9,7 +9,7 @@ from django.urls import reverse
 from seeCOVID19.models import *
 from random import *
 import json
-
+import os
 import pandas as pd
 import requests
 import sys
@@ -18,10 +18,11 @@ from datetime import datetime,timedelta
 from fuzzywuzzy import process
 from seeCOVID19.dataProcessor import *
 
+thisFilePath=os.path.dirname(os.path.abspath(__file__))
 currentMap={"date":datetime.today(),"data":makeMap()}
-worldDem= pd.read_csv("seeCOVID19/worldPop.csv", sep=",")
-stateDem= pd.read_csv("seeCOVID19/USStatePop.csv", sep=",")
-countyDem= pd.read_csv("seeCOVID19/USCountyPop.csv", sep=",")
+worldDem= pd.read_csv(thisFilePath+"/worldPop.csv", sep=",")
+stateDem= pd.read_csv(thisFilePath+"/USStatePop.csv", sep=",")
+countyDem= pd.read_csv(thisFilePath+"/USCountyPop.csv", sep=",")
 
 SITES={}
 
