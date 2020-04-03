@@ -390,11 +390,11 @@ $.getJSON('COVID19map', function(response){
                    $("#demo-statement").html("@ "+outStr+"<br> 1 in "+odds+" people have Coronavirus<br>That's "+densityRatioStr)
 
                    $(".chance-covid").remove()
-                   cardHtml='<li class="collection-item chance-covid"> <div class="valign-wrapper"><img src="/static/img/seeCOVID19/virus.png">1 in&nbsp;<span class="odds">'+odds+'</span>&nbsp;chance: you have COVID-19 @ '+outStr+'</span></div></li>'
+                   cardHtml='<li class="collection-item chance-covid"> <div class="valign-wrapper"><img src="/static/img/seeCOVID19/virus.png"><p>1 in&nbsp;<b class="odds">'+odds+'</b>&nbsp;chance: you have COVID-19 @ '+outStr+'</p></div></li>'
                    $('#odds li .odds').each(function(i, obj) {
                       itemOdd=parseInt($(obj).text());
                       if(odds<itemOdd){
-                        $(obj).parent().parent().before(cardHtml);
+                        $(obj).parent().parent().parent().before(cardHtml);
                         return false
                       }
                    });
