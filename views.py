@@ -55,16 +55,20 @@ def curveFitAPI(request):
     if request.method == 'POST':
         outdata={}
         jsonData=json.loads(request.body.decode('utf-8'))
-        # try:
         print(jsonData["series"])
         outdata=computeRegressionVars(jsonData["series"])
-        # except Exception as e:
-        #     print(e)
-        #     print("unable to fit :(")
-        #     outdata=None
-        # print(email,countryCode,province,city,name)
-
         return JsonResponse(outdata)
+
+@csrf_exempt
+def SIRFitAPI(request):
+    if request.method == 'POST':
+        outdata={}
+        jsonData=json.loads(request.body.decode('utf-8'))
+        print("Series",jsonData["series"])
+        print("Pop",jsonData["pop"])
+        outdata=computeSIRVars(jsonData["series"],jsonData["pop"])
+        return JsonResponse(outdata)
+
 
 @csrf_exempt
 def mapAPI(request):

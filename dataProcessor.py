@@ -380,3 +380,85 @@ def computeRegressionVars(timeseries):
             "center_err":centerErr,
             "sigma":sigma,
             "sigma_err":sigmaErr}
+def deriv(y, t, N, ps):
+    S, I, R = y
+    try:
+        beta_i = ps['beta_i'].value
+        tau = ps['tau'].value
+        gamma = ps['gamma'].value
+    except:
+        beta_i, beta_l, tau, gamma = ps
+
+    beta = beta_i*(1.1-tau*t)
+    dSdt = -beta * S * I / N
+    dIdt = beta * S * I / N - gamma * I
+    dRdt = gamma * I
+    return dSdt, dIdt, dRdt
+
+def odesol(y,t,N,ps):
+    I0 = ps['i0'].value
+    y0 = S0, I0, R0
+    x = odeint(deriv, y0, t, args=(N, ps))
+    return x
+
+def residual(ps, ts, data):
+    model = pd.DataFrame(odesol(y0,t,N,ps), columns=['S','I','R'])
+    return (model['I'].values - data).ravel()
+
+def computeSIRVars(timeseries,pop):
+    timeseries=sorted(timeseries,key=lambda srs: srs["t"])
+    y=np.array([val["y"] for val in timeseries],dtype=np.uint32)
+    t=np.array([val["t"] for val in timeseries],dtype=np.uint64)/1000/24/3600
+
+    print(y)
+    day0=t[0]
+    t=t-t[0]
+    dayz=t[-1]
+    print("Days detected",dayz)
+
+    f = interpolate.interp1d(t, y)
+
+    xdata=np.arange(0,dayz,1,dtype=np.uint16)
+    ydata=f(xdata)
+    print(xdata)
+    print(ydata)
+    # model data
+    # Total population, N.
+    N = pop
+    # Initial number of infected and recovered individuals, I0 and R0.
+    I0, R0 = 100, 0
+    # Everyone else, S0, is susceptible to infection initially.
+    S0 = N - I0 - R0
+    # Initial conditions vector
+    y0 = S0, I0, R0
+
+    t = xdata
+    data=ydata
+
+    # set parameters incluing bounds
+    params = Parameters()
+    params.add('i0', value=I0)
+    params.add('beta_i', value= 0.35)
+    params.add('gamma', value= 0.11)
+    params.add('tau', value= 0.021)
+
+    # fit model and find predicted values
+    result = minimize(residual, params, args=(t, data), method='leastsq')
+
+
+    print(fit_report(result))
+    i=result.params["i0"].value
+    beta=result.params["beta_i"].value
+    gamma=result.params["gamma"].value
+    tau=result.params["tau"].value
+
+
+    # print("Time Series Day 0",day0)
+    # print("Projected Total Cases",amplitude)
+    # print("Projected Turning Point",center)
+    # print("Projected Sigma",sigma)
+    return {"day0":day0*1000*24*3600,
+            "i":i,
+            "beta":beta,
+            "gamma":gamma,
+            "tau":tau,}

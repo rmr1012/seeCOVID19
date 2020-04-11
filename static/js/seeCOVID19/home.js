@@ -217,6 +217,14 @@ recoveredLogChart.options.scales.yAxes[0].ticks.callback=logTicker;
 var recoveredSlopeChart = new Chart($('#canvas-recovered-slope')[0].getContext('2d'), derivativeConfig("Logarithmic Slope"))
 var recoveredConChart = new Chart($('#canvas-recovered-concavity')[0].getContext('2d'), derivativeConfig("Logarithmic Concavity"))
 
+var activeLinChart = new Chart($('#canvas-active-linear')[0].getContext('2d'), simpleConfig('Comfirmed active'));
+var activeLogChart = new Chart($('#canvas-active-log')[0].getContext('2d'), simpleConfig('Comfirmed active'));
+activeLogChart.options.scales.yAxes[0].type='logarithmic';
+activeLogChart.options.scales.yAxes[0].ticks.callback=logTicker;
+
+var activeSlopeChart = new Chart($('#canvas-active-slope')[0].getContext('2d'), derivativeConfig("Logarithmic Slope"))
+var activeConChart = new Chart($('#canvas-active-concavity')[0].getContext('2d'), derivativeConfig("Logarithmic Concavity"))
+
 function submitSub(email,name,id){
   $.ajax({
           type: "POST",
@@ -328,94 +336,108 @@ $.getJSON('COVID19map', function(response){
          rawData[dataID] = response;
          console.log(rawData)
        }).complete(function(){
-         repaintAllCharts(dataID)
-       })
+         targetType=2
+         city=$("#municipality-select option:selected").text()
+         state=$("#region-select option:selected").text()
+         if (city=="Overall" | city == ''){
+           city=""
+           targetType=1
+         }
+         if (state=="Overall" | state == ''){
+           state=""
+           targetType=0
+         }
 
+         country=$("#country-select option:selected").text()
+         console.log("Updating dem data",targetType,country,state,city)
+         $.ajax({
+                 type: "GET",
+                 url: window.location.pathname+"dem",//other option is search
+                 dataType: "json",
+                 data : {country:country,state:state,county:city},
+                 success: function(response) {
+                     // console.log(response);
 
-       targetType=2
-       city=$("#municipality-select option:selected").text()
-       state=$("#region-select option:selected").text()
-       if (city=="Overall" | city == ''){
-         city=""
-         targetType=1
-       }
-       if (state=="Overall" | state == ''){
-         state=""
-         targetType=0
-       }
+                     outData=response;
+                     pop=outData["pop"]
+                     density=outData["density"]
+                     rawData[dataID]["pop"]=pop
+                     rawData[dataID]["density"]=density
+                     unit="square kilometer"
+                     if(targetType==0){
+                       comfirmed=mapData[country]["cases"]
+                       outStr=country
+                       if(country=="US"){unit="square mile"}
+                     }
+                     else if(targetType==1){
+                       comfirmed=mapData[country]["provinces"][state]["cases"]
+                       outStr=state+", "+country
+                       unit="square mile"
+                     }
+                     else if(targetType==2){
+                       comfirmed=mapData[country]["provinces"][state]["cities"][city]["cases"]
+                       outStr=city+", "+state+", "+country
+                       unit="square mile"
+                     }
 
-       country=$("#country-select option:selected").text()
-       console.log("Updating dem data",targetType,country,state,city)
-       $.ajax({
-               type: "GET",
-               url: window.location.pathname+"dem",//other option is search
-               dataType: "json",
-               data : {country:country,state:state,county:city},
-               success: function(response) {
-                   // console.log(response);
+                     odds=Math.round(pop/comfirmed)
+                     console.log("odds here",odds,pop,comfirmed)
+                     ratio=density/odds
+                     if (ratio>1){
+                       ratio1=Math.round(ratio)
+                       densityRatioStr=ratio1+" cases per "+unit
+                     }
+                     else{
+                       ratio2=Math.round(1/ratio)
+                       densityRatioStr="1 cases every "+ratio2+" "+unit+"s"
+                     }
 
-                   outData=response;
-                   pop=outData["pop"]
-                   density=outData["density"]
-                   unit="square kilometer"
-                   if(targetType==0){
-                     comfirmed=mapData[country]["cases"]
-                     outStr=country
-                     if(country=="US"){unit="square mile"}
-                   }
-                   else if(targetType==1){
-                     comfirmed=mapData[country]["provinces"][state]["cases"]
-                     outStr=state+", "+country
-                     unit="square mile"
-                   }
-                   else if(targetType==2){
-                     comfirmed=mapData[country]["provinces"][state]["cities"][city]["cases"]
-                     outStr=city+", "+state+", "+country
-                     unit="square mile"
-                   }
+                     $("#subscribe-location").text(outStr);
+                     $("#demo-statement").html("@ "+outStr+"<br> 1 in "+odds+" people have Coronavirus<br>That's "+densityRatioStr)
 
-                   odds=Math.round(pop/comfirmed)
-                   console.log("odds here",odds,pop,comfirmed)
-                   ratio=density/odds
-                   if (ratio>1){
-                     ratio1=Math.round(ratio)
-                     densityRatioStr=ratio1+" cases per "+unit
-                   }
-                   else{
-                     ratio2=Math.round(1/ratio)
-                     densityRatioStr="1 cases every "+ratio2+" "+unit+"s"
-                   }
-
-                   $("#subscribe-location").text(outStr);
-                   $("#demo-statement").html("@ "+outStr+"<br> 1 in "+odds+" people have Coronavirus<br>That's "+densityRatioStr)
-
-                   $(".chance-covid").remove()
-                   cardHtml='<li class="collection-item chance-covid"> <div class="valign-wrapper"><img src="/static/img/seeCOVID19/virus.png"><p>1 in&nbsp;<b class="odds">'+odds+'</b>&nbsp;chance: you have COVID-19 @ '+outStr+'</p></div></li>'
-                   $('#odds li .odds').each(function(i, obj) {
-                      itemOdd=parseInt($(obj).text());
-                      if(odds<itemOdd){
-                        $(obj).parent().parent().parent().before(cardHtml);
-                        return false
-                      }
-                   });
-                   $("#demographics").show()
-               },
-               timeout: 3000,
-               error: function(response) {
-                   console.log(response);
-                   console.log("no dem data found")
-                   $("#demographics").hide()
-               }
+                     $(".chance-covid").remove()
+                     cardHtml='<li class="collection-item chance-covid"> <div class="valign-wrapper"><img src="/static/img/seeCOVID19/virus.png"><p>1 in&nbsp;<b class="odds">'+odds+'</b>&nbsp;chance: you have COVID-19 @ '+outStr+'</p></div></li>'
+                     $('#odds li .odds').each(function(i, obj) {
+                        itemOdd=parseInt($(obj).text());
+                        if(odds<itemOdd){
+                          $(obj).parent().parent().parent().before(cardHtml);
+                          return false
+                        }
+                     });
+                     $("#demographics").show()
+                 },
+                 timeout: 3000,
+                 error: function(response) {
+                     console.log(response);
+                     console.log("no dem data found")
+                     $("#demographics").hide()
+                 },
+                 complete: function(){
+                   repaintAllCharts(dataID)
+                 }
+         });
        });
+
+
+
 
      }
 
      function repaintAllCharts(dataID) {
 
-       $('#latest').text("Confirmed: "+rawData[dataID]["latest"]["confirmed"]+
-                         "    Deaths: "   +rawData[dataID]["latest"]["deaths"]+
-                         "    Recovered: "+rawData[dataID]["latest"]["recovered"]
-                        );
+       statusText="Confirmed: "+rawData[dataID]["latest"]["confirmed"]+
+                         "    Deaths: "   +rawData[dataID]["latest"]["deaths"]
+       if(rawData[dataID]["latest"]["recovered"]!=0){
+         statusText+="    Recovered: "+rawData[dataID]["latest"]["recovered"]
+         $(".recovered-div").show()
+         $(".active-div").show()
+      }
+      else{
+        $(".recovered-div").hide()
+        $(".active-div").hide()
+
+      }
+       $('#latest').text(statusText);
         $("#data-ts").text("Data as of "+moment(rawData[dataID]["last_updated"]).add(7,"hours").format('MMMM Do YYYY'))
        baselineData=getTimelineByID(dataID,type="confirmed")
        casesLinChart.data.datasets[1].data=baselineData
@@ -465,11 +487,30 @@ $.getJSON('COVID19map', function(response){
 
        getLogFitByID(dataID,type="recovered")
 
-
        recoveredLinChart.update()
        recoveredLogChart.update()
        recoveredConChart.update()
        recoveredSlopeChart.update()
+       // ------------------------------------------------------------------------
+
+       baselineData=getTimelineByID(dataID,type="active")
+       activeLinChart.data.datasets[1].data=baselineData
+       activeLogChart.data.datasets[1].data=baselineData
+
+       logConData=getLogConTimelineByID(dataID,type="active")
+       activeConChart.data.datasets[0].data=logConData
+
+       logSlopeData=getLogSlopeTimelineByID(dataID,type="active")
+       activeSlopeChart.data.datasets[0].data=logSlopeData
+
+       getSIRFitByID(dataID)
+
+       activeLinChart.update()
+       activeLogChart.update()
+       activeConChart.update()
+       activeSlopeChart.update()
+       // ------------------------------------------------------------------------
+
        currentID=dataID
     }
 
@@ -612,18 +653,38 @@ function getIDbyLocation(country,province){
 function getTimelineByID(locID,type="confirmed"){
   var data = [];
   var lastKey="";
+  if (type=="active" & rawData[locID]["latest"]["comfirmed"]!=0){
+    console.log("calculating activ cases")
+    for(var key in rawData[locID]["confirmed"]){
+      // console.log(key)
+      var convalue = rawData[locID]["confirmed"][key]
+      var recvalue = rawData[locID]["recovered"][key]
+      var value=convalue-recvalue
+      // console.log(convalue,recvalue)
+      // console.log(key,value)
+      date= moment(key).add(7, 'hours')
+      // if(rawData[locID]["comfirmed"][key] != rawData[locID]["comfirmed"][lastKey])
+      data.push({
+           t: date.valueOf(),
+           y: value
+         })
+      lastKey=key
 
-  for(var key in rawData[locID][type]){
-    var value = rawData[locID][type][key]
-    // console.log(key,value)
-    date= moment(key).add(7, 'hours')
-    if(rawData[locID][type][key] != rawData[locID][type][lastKey])
-    data.push({
-         t: date.valueOf(),
-         y: value
-       })
-    lastKey=key
+    }
+  }
+  else{
+    for(var key in rawData[locID][type]){
+      var value = rawData[locID][type][key]
+      // console.log(key,value)
+      date= moment(key).add(7, 'hours')
+      if(rawData[locID][type][key] != rawData[locID][type][lastKey])
+      data.push({
+           t: date.valueOf(),
+           y: value
+         })
+      lastKey=key
 
+    }
   }
   data.sort(function(a, b) {return a.t - b.t;})
  return data;
@@ -694,6 +755,36 @@ function getLogFitByID(locID,type="confirmed"){
   });
 
 }
+
+function getSIRFitByID(locID){
+  var data = [];
+  var lastKey="";
+  var outData=null;
+  console.log("kicking off SIR fit",locID)
+  ohHere=rawData[locID]
+  pop=ohHere.pop
+  console.log(ohHere)
+  console.log(pop)
+  console.log({series:getTimelineByID(locID,"active"),pop:rawData[locID]["pop"]})
+  $.ajax({
+          type: "POST",
+          url: window.location.pathname+"SIRFit",//other option is search
+          dataType: "json",
+          data : JSON.stringify({series:getTimelineByID(locID,"active"),pop:rawData[locID]["pop"]}),
+          success: function(response) {
+              // console.log(response);
+              outData=response;
+              console.log(outData)
+              // updateLogFitByID(outData,type)
+          },
+          timeout: 3000,
+          error: function(response) {
+              console.log(response);
+          }
+  });
+
+}
+
 function getLogConTimelineByID(locID,type="confirmed"){
  var inData= getLogSlopeTimelineByID(locID,"confirmed")
  iterCnt=0;
