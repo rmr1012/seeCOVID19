@@ -58,6 +58,10 @@ statesDict = {
 'WY': 'Wyoming'
 };
 
+function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 var isoCountries = {
         'Cruise Ship': 'XX',
         'Australia': 'AU',
@@ -425,10 +429,10 @@ $.getJSON('COVID19map', function(response){
 
      function repaintAllCharts(dataID) {
 
-       statusText="Confirmed: "+rawData[dataID]["latest"]["confirmed"]+
-                         "    Deaths: "   +rawData[dataID]["latest"]["deaths"]
+       statusText="Confirmed: "+numberWithCommas(rawData[dataID]["latest"]["confirmed"])+
+                         "    Deaths: "   +numberWithCommas(rawData[dataID]["latest"]["deaths"])
        if(rawData[dataID]["latest"]["recovered"]!=0){
-         statusText+="    Recovered: "+rawData[dataID]["latest"]["recovered"]
+         statusText+="    Recovered: "+numberWithCommas(rawData[dataID]["latest"]["recovered"])
          $(".recovered-div").show()
          $(".active-div").show()
       }
