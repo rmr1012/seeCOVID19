@@ -188,58 +188,62 @@ def storeDayData(day):
     return index
 
 def makeMap():
-    dat=list(mapData.objects.all().values())
-    df=pd.DataFrame(dat,dtype=int)
-    outObj={}
-    for country, df_region in df.groupby("country"):
-        countryList=df_region[df_region["province"].isin(["nan"])]
-        # print("haha",country)
-        if len(countryList["id"].values)>0:
-            countryID=countryList["id"].values[0]
+    try:
+        outObj=pickle.load(open("map.pk",'rb'))
+    except:
+        dat=list(mapData.objects.all().values())
+        df=pd.DataFrame(dat,dtype=int)
+        outObj={}
+        for country, df_region in df.groupby("country"):
+            countryList=df_region[df_region["province"].isin(["nan"])]
+            # print("haha",country)
+            if len(countryList["id"].values)>0:
+                countryID=countryList["id"].values[0]
 
-            provinceList=df_region[~df_region["province"].str.contains(",") & ~df_region["province"].isin(["nan"])]
+                provinceList=df_region[~df_region["province"].str.contains(",") & ~df_region["province"].isin(["nan"])]
 
-            provinceDict={}
-            for index,province in provinceList.iterrows():
-                    casesList=list(locationData.objects.filter(locationID=province["id"],type=0).values())
-                    try:
-                        latest_confirmed=casesList[-1]["count"]
-                    except:
-                        print(countryID,country,casesList)
-                        latest_confirmed=0
-                    provinceDict[province["province"]]={"id":int(province["id"]),"cities":{},"cases":latest_confirmed}
-            if country == "US":
-                countyList=df_region[df_region["province"].str.contains(",")]
-                countyList[["county","province"]]=countyList["province"].str.split(",",expand=True)
-                countyList["province"]=countyList["province"].str.strip()
-                us_state_abbrev_rev = {value:key for key, value in us_state_abbrev.items()}
-                countyList=countyList.replace({"province":us_state_abbrev_rev})
-                # print(countyList)
-                for state, df_state in countyList.groupby("province"):
-                    countyDict={}
-                    for index,county in df_state.iterrows():
-
-                        casesList=list(locationData.objects.filter(locationID=county["id"],type=0).values())
+                provinceDict={}
+                for index,province in provinceList.iterrows():
+                        casesList=list(locationData.objects.filter(locationID=province["id"],type=0).values())
                         try:
                             latest_confirmed=casesList[-1]["count"]
                         except:
                             print(countryID,country,casesList)
                             latest_confirmed=0
-                        countyDict[county["county"]]={"id":int(county["id"]),"cases":latest_confirmed}
-                    # print(countyDict)
-                    try:
-                        provinceDict[county["province"]]["cities"]=countyDict
-                    except:
-                        print("coun't build map for ",county["province"])
-            # print(country,countryID)
-            casesList=list(locationData.objects.filter(locationID=countryID,type=0).values())
-            try:
-                latest_confirmed=casesList[-1]["count"]
-            except:
-                print(countryID,country,casesList)
-                latest_confirmed=0
-            outObj[country]={"id":int(countryID),"provinces":provinceDict,"cases":latest_confirmed}
+                        provinceDict[province["province"]]={"id":int(province["id"]),"cities":{},"cases":latest_confirmed}
+                if country == "US":
+                    countyList=df_region[df_region["province"].str.contains(",")]
+                    countyList[["county","province"]]=countyList["province"].str.split(",",expand=True)
+                    countyList["province"]=countyList["province"].str.strip()
+                    us_state_abbrev_rev = {value:key for key, value in us_state_abbrev.items()}
+                    countyList=countyList.replace({"province":us_state_abbrev_rev})
+                    # print(countyList)
+                    for state, df_state in countyList.groupby("province"):
+                        countyDict={}
+                        for index,county in df_state.iterrows():
 
+                            casesList=list(locationData.objects.filter(locationID=county["id"],type=0).values())
+                            try:
+                                latest_confirmed=casesList[-1]["count"]
+                            except:
+                                print(countryID,country,casesList)
+                                latest_confirmed=0
+                            countyDict[county["county"]]={"id":int(county["id"]),"cases":latest_confirmed}
+                        # print(countyDict)
+                        try:
+                            provinceDict[county["province"]]["cities"]=countyDict
+                        except:
+                            print("coun't build map for ",county["province"])
+                # print(country,countryID)
+                casesList=list(locationData.objects.filter(locationID=countryID,type=0).values())
+                try:
+                    latest_confirmed=casesList[-1]["count"]
+                except:
+                    print(countryID,country,casesList)
+                    latest_confirmed=0
+                outObj[country]={"id":int(countryID),"provinces":provinceDict,"cases":latest_confirmed}
+
+        pickle.dump(outObj,open("map.pk",'wb'))
     return outObj
 
 def makeDayDF(day):
